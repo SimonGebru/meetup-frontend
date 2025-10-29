@@ -149,6 +149,7 @@ const Auth = () => {
                         name="email"
                         type="email"
                         placeholder="din@epost.se"
+                        autoComplete="username"
                         className="h-12 transition-all focus:ring-2 focus:ring-primary/20"
                         required
                       />
@@ -163,6 +164,7 @@ const Auth = () => {
                         name="password"
                         type="password"
                         placeholder="••••••••"
+                        autoComplete="current-password"
                         className="h-12 transition-all focus:ring-2 focus:ring-primary/20"
                         required
                       />
