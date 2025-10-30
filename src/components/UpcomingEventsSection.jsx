@@ -22,7 +22,7 @@ const UpcomingEventsSection = ({
   setMeetupModal,
   handleRegister,
   handleUnregister,
-  registeredMeetupIds
+  registeredMeetupIds,
 }) => (
   <section className="py-16 bg-gradient-to-b from-muted/30 to-background border-b border-border/50">
     <div className="container mx-auto px-4 max-w-7xl">
@@ -33,7 +33,8 @@ const UpcomingEventsSection = ({
         </h2>
         <p className="text-lg md:text-xl text-muted-foreground mb-2">
           Hitta inspiration, nätverka och utvecklas tillsammans med andra.
-          Använd de smarta filtren för att snabbt hitta evenemang som passar just dig.
+          Använd de smarta filtren för att snabbt hitta evenemang som passar
+          just dig.
         </p>
       </div>
       <div className="flex flex-col lg:flex-row gap-12">
@@ -42,7 +43,12 @@ const UpcomingEventsSection = ({
           <div className="mb-8 space-y-6">
             {/* Sökfält */}
             <div className="space-y-1">
-              <label htmlFor="search-input" className="block text-xs font-semibold text-muted-foreground mb-1">Sök</label>
+              <label
+                htmlFor="search-input"
+                className="block text-xs font-semibold text-muted-foreground mb-1"
+              >
+                Sök
+              </label>
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
@@ -67,16 +73,23 @@ const UpcomingEventsSection = ({
             </div>
             {/* Platsfilter */}
             <div className="space-y-1">
-              <label htmlFor="location-filter" className="block text-xs font-semibold text-muted-foreground mb-1">Plats</label>
+              <label
+                htmlFor="location-filter"
+                className="block text-xs font-semibold text-muted-foreground mb-1"
+              >
+                Plats
+              </label>
               <select
                 id="location-filter"
                 className="w-full rounded-lg border border-border bg-background py-2 px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                 value={selectedLocation}
-                onChange={e => setSelectedLocation(e.target.value)}
+                onChange={(e) => setSelectedLocation(e.target.value)}
               >
                 <option value="">Alla platser</option>
-                {uniqueLocations.map(loc => (
-                  <option key={loc} value={loc}>{loc}</option>
+                {uniqueLocations.map((loc) => (
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
                 ))}
               </select>
               {selectedLocation && (
@@ -90,15 +103,19 @@ const UpcomingEventsSection = ({
             </div>
             {/* Kategorifilter */}
             <div className="space-y-1">
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">Kategori</label>
-              <CategoryFilter 
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                Kategori
+              </label>
+              <CategoryFilter
                 activeCategory={activeCategory}
                 onCategoryChange={setActiveCategory}
               />
             </div>
             {/* Datumfilter */}
             <div className="space-y-1">
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">Datum</label>
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                Datum
+              </label>
               <div className="bg-background/80 rounded-2xl shadow-lg border border-border/50 p-2">
                 <DayPicker
                   mode="single"
@@ -129,20 +146,23 @@ const UpcomingEventsSection = ({
         <main className="flex-1 min-w-0">
           <div className="mb-8">
             <h2 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              {activeCategory === "All" ? "Kommande evenemang" : `${activeCategory} evenemang`}
+              {activeCategory === "All"
+                ? "Kommande evenemang"
+                : `${activeCategory} evenemang`}
             </h2>
             <div className="flex items-center gap-2 text-muted-foreground mt-2">
               <Calendar className="w-4 h-4" />
               <p className="text-lg">
-                {filteredMeetups.length} evenemang{filteredMeetups.length !== 1 ? "" : ""} hittade
+                {filteredMeetups.length} evenemang
+                {filteredMeetups.length !== 1 ? "" : ""} hittade
               </p>
             </div>
           </div>
           {filteredMeetups.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 animate-fade-in">
               {filteredMeetups.map((meetup, index) => (
-                <div 
-                  key={meetup.id} 
+                <div
+                  key={meetup.id}
                   className="animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                   onClick={() => setMeetupModal(meetup)}
@@ -160,12 +180,15 @@ const UpcomingEventsSection = ({
                 <div className="w-16 h-16 mx-auto bg-muted/50 rounded-full flex items-center justify-center">
                   <Search className="w-8 h-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-2xl font-semibold">Inga evenemang hittades</h3>
+                <h3 className="text-2xl font-semibold">
+                  Inga evenemang hittades
+                </h3>
                 <p className="text-muted-foreground text-lg">
-                  Försök justera dina filter eller söktermer för att hitta fler evenemang.
+                  Försök justera dina filter eller söktermer för att hitta fler
+                  evenemang.
                 </p>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setSearchQuery("");
                     setActiveCategory("All");

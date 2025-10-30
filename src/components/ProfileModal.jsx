@@ -1,17 +1,31 @@
 import { useState } from "react";
-import { User, Calendar, MapPin, Users, ArrowRight, LogOut } from "lucide-react";
+import {
+  User,
+  Calendar,
+  MapPin,
+  Users,
+  ArrowRight,
+  LogOut,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import ReviewModal from "@/components/ReviewModal";
 
-const ProfileModal = ({ show, onClose, userMeetups, selectedMeetup, setSelectedMeetup, onLogout }) => {
+const ProfileModal = ({
+  show,
+  onClose,
+  userMeetups,
+  selectedMeetup,
+  setSelectedMeetup,
+  onLogout,
+}) => {
   const [activeTab, setActiveTab] = useState("joined");
   const [selectedReviewMeetup, setSelectedReviewMeetup] = useState(null);
   const [reviews, setReviews] = useState(() => {
     const stored = localStorage.getItem("reviews");
     return stored ? JSON.parse(stored) : [];
   });
-  const { toast } = useToast(); 
+  const { toast } = useToast();
 
   // Dagens datum (utan tid)
   const today = new Date();
@@ -201,7 +215,9 @@ const ProfileModal = ({ show, onClose, userMeetups, selectedMeetup, setSelectedM
               ) : (
                 <ul className="divide-y divide-border/60 rounded-xl overflow-hidden bg-muted/30 shadow-inner">
                   {pastMeetups.map((meetup) => {
-                    const hasReview = reviews.some((r) => r.meetupId === meetup.id);
+                    const hasReview = reviews.some(
+                      (r) => r.meetupId === meetup.id
+                    );
                     return (
                       <li
                         key={meetup.id}

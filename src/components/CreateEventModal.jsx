@@ -79,15 +79,29 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
           </button>
         </div>
         <div className="p-8">
-          <h3 className="text-2xl font-bold mb-6 flex items-center gap-2 justify-center">Skapa nytt evenemang</h3>
+          <h3 className="text-2xl font-bold mb-6 flex items-center gap-2 justify-center">
+            Skapa nytt evenemang
+          </h3>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <Label htmlFor="title">Titel</Label>
-              <Input id="title" name="title" value={form.title} onChange={handleChange} required />
+              <Input
+                id="title"
+                name="title"
+                value={form.title}
+                onChange={handleChange}
+                required
+              />
             </div>
             <div>
               <Label htmlFor="location">Plats</Label>
-              <Input id="location" name="location" value={form.location} onChange={handleChange} required />
+              <Input
+                id="location"
+                name="location"
+                value={form.location}
+                onChange={handleChange}
+                required
+              />
             </div>
             <div>
               <Label>Datum & tid</Label>
@@ -102,7 +116,10 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="time" className="flex items-center gap-1"><Clock className="w-4 h-4" />Tid</Label>
+                  <Label htmlFor="time" className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    Tid
+                  </Label>
                   <Input
                     id="time"
                     name="time"
@@ -117,11 +134,26 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
             </div>
             <div>
               <Label htmlFor="category">Kategori</Label>
-              <Input id="category" name="category" value={form.category} onChange={handleChange} required />
+              <Input
+                id="category"
+                name="category"
+                value={form.category}
+                onChange={handleChange}
+                required
+              />
             </div>
             <div>
               <Label htmlFor="maxAttendees">Max antal deltagare</Label>
-              <Input id="maxAttendees" name="maxAttendees" type="number" min={1} max={500} value={form.maxAttendees} onChange={handleChange} required />
+              <Input
+                id="maxAttendees"
+                name="maxAttendees"
+                type="number"
+                min={1}
+                max={500}
+                value={form.maxAttendees}
+                onChange={handleChange}
+                required
+              />
             </div>
             <div>
               <Label htmlFor="info">Information om evenemanget</Label>
@@ -137,10 +169,19 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
               />
             </div>
             <div className="flex gap-4 pt-2">
-              <Button type="submit" className="flex-1 h-12 text-base font-bold" disabled={loading}>
+              <Button
+                type="submit"
+                className="flex-1 h-12 text-base font-bold"
+                disabled={loading}
+              >
                 {loading ? "Skapar..." : "Skapa evenemang"}
               </Button>
-              <Button type="button" variant="outline" className="flex-1 h-12 text-base" onClick={onClose}>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 h-12 text-base"
+                onClick={onClose}
+              >
                 Avbryt
               </Button>
             </div>

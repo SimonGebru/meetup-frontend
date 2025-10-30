@@ -1,13 +1,13 @@
-import { Sparkles, User, LogOut } from "lucide-react";
+import { Sparkles, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const Navbar = ({ onShowProfile, onLogout }) => (
+const Navbar = ({ onShowProfile }) => (
   <div className="relative z-10 w-full">
     <div className="container mx-auto px-4 py-6 flex justify-between items-center">
-      <div className="flex items-center gap-2">
+      <a href="/meetups" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
         <Sparkles className="w-8 h-8 text-primary" />
         <span className="text-2xl font-extrabold text-white tracking-tight">MeetUpz</span>
-      </div>
+      </a>
       <div className="flex items-center gap-2">
         <Button
           onClick={onShowProfile}

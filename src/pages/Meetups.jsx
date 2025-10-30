@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import CreateEventModal from "@/components/CreateEventModal";
@@ -73,7 +73,10 @@ const mockMeetups = [
   },
 ];
 
+
 const Meetups = () => {
+  // Ref for scroll target
+  const exploreRef = useRef(null);
 
   {/* Logout handler */}
   const handleLogout = () => {
@@ -181,23 +184,32 @@ const Meetups = () => {
             {/* Main Header */}
             <div className="space-y-4">
               <h1 className="text-6xl md:text-7xl font-extrabold leading-tight tracking-tight">
-                Hitta din{" "}
+                Där idéer{" "}
                 <span className="bg-gradient-to-r from-primary to-cyan-400 bg-clip-text text-transparent font-extrabold">
-                  gemenskap
+                  möts
                 </span>
                 <br />
-                <span className="font-extrabold">Upptäck fantastiska evenemang</span>
+                och <span className="bg-gradient-to-r from-primary to-cyan-400 bg-clip-text text-transparent font-extrabold">människor</span> växer.
               </h1>
               <p className="text-2xl text-muted-foreground max-w-3xl leading-relaxed font-medium">
-                Gå med i tusentals människor som träffas för att lära sig, dela och ansluta över gemensamma intressen. 
-                Ditt nästa äventyr börjar här.
+                Upptäck Meetups som förenar nyfikenhet, kreativitet och gemenskap.
+                Hitta ditt nästa äventyr – och de människor som gör det oförglömligt.
               </p>
             </div>
             {/* Action Knappar */}
             <div className="flex flex-col sm:flex-row gap-4 pt-6">
-              <Button size="lg" className="text-lg px-8 py-4 h-auto group">
+              {/* Scroll to UpcomingEventsSection on click */}
+              <Button
+                size="lg"
+                className="text-lg px-8 py-4 h-auto group"
+                onClick={() => {
+                  if (exploreRef.current) {
+                    exploreRef.current.scrollIntoView({ behavior: "smooth" });
+                  }
+                }}
+              >
                 <Search className="w-5 h-5 mr-2" />
-                Utforska evenemang
+                Utforska Meetups
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button
@@ -207,7 +219,7 @@ const Meetups = () => {
                 onClick={() => setShowCreateEvent(true)}
               >
                 <Plus className="w-5 h-5 mr-2" />
-                Skapa evenemang
+                Anordna en Meetup
               </Button>
             </div>
           </div>
@@ -215,23 +227,25 @@ const Meetups = () => {
       </section>
 
       {/* Kommande evenemang-sektion */}
-      <UpcomingEventsSection
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        activeCategory={activeCategory}
-        setActiveCategory={setActiveCategory}
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-        selectedLocation={selectedLocation}
-        setSelectedLocation={setSelectedLocation}
-        uniqueLocations={uniqueLocations}
-        filteredMeetups={filteredMeetups}
-        meetupModal={meetupModal}
-        setMeetupModal={setMeetupModal}
-        handleRegister={handleRegister}
-        handleUnregister={handleUnregister}
-        registeredMeetupIds={registeredMeetupIds}
-      />
+      <div ref={exploreRef}>
+        <UpcomingEventsSection
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          activeCategory={activeCategory}
+          setActiveCategory={setActiveCategory}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          selectedLocation={selectedLocation}
+          setSelectedLocation={setSelectedLocation}
+          uniqueLocations={uniqueLocations}
+          filteredMeetups={filteredMeetups}
+          meetupModal={meetupModal}
+          setMeetupModal={setMeetupModal}
+          handleRegister={handleRegister}
+          handleUnregister={handleUnregister}
+          registeredMeetupIds={registeredMeetupIds}
+        />
+      </div>
       <CreateEventModal
         show={showCreateEvent}
         onClose={() => setShowCreateEvent(false)}
