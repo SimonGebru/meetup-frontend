@@ -1,20 +1,117 @@
-import { mockMeetups } from "../data/mockMeetups";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
-export async function getMeetups() {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(mockMeetups), 800);
-  });
+/**
+ * Hämta alla meetups
+ */
+export async function getAllMeetups() {
+  try {
+    const res = await fetch(`${API_URL}/meetups`);
+    const data = await res.json();
+
+    if (!res.ok)
+      throw new Error(data.message || data.error || "Kunde inte hämta meetups");
+    return data;
+  } catch (err) {
+    console.error("getAllMeetups error:", err);
+    throw new Error(err.message || "Nätverksfel vid hämtning av meetups");
+  }
 }
 
+/**
+ * Hämta en specifik meetup via ID
+ */
 export async function getMeetupById(id) {
-  return new Promise((resolve, reject) => {
-    const meetup = mockMeetups.find((m) => m.id === id);
-    meetup ? resolve(meetup) : reject("Meetup ej hittad");
-  });
+  try {
+    const res = await fetch(`${API_URL}/meetups/${id}`);
+    const data = await res.json();
+
+    if (!res.ok)
+      throw new Error(data.message || data.error || "Kunde inte hämta meetup");
+    return data;
+  } catch (err) {
+    console.error("getMeetupById error:", err);
+    throw new Error(err.message || "Nätverksfel vid hämtning av meetup");
+  }
 }
 
-export async function registerToMeetup(id) {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve({ success: true, message: "Anmäld (mock)" }), 500);
-  });
+/**
+ * Skapa ett nytt meetup (kräver JWT-token)
+ */
+export async function createMeetup(meetupData, token) {
+  try {
+    const authToken = token || localStorage.getItem("token");
+
+    const res = await fetch(`${API_URL}/meetups`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify(meetupData),
+    });
+
+    
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
+    }
+
+    if (!res.ok)
+      throw new Error(data.message || data.error || "Kunde inte skapa meetup");
+
+    return data;
+  } catch (err) {
+    console.error("createMeetup error:", err);
+    throw new Error(err.message || "Nätverksfel vid skapande av meetup");
+  }
+}
+
+/**
+ * Gå med i en meetup (kräver JWT-token)
+ */
+export async function joinMeetup(id, token) {
+  try {
+    const res = await fetch(`${API_URL}/meetups/${id}/join`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    if (!res.ok)
+      throw new Error(data.message || data.error || "Kunde inte gå med i meetup");
+    return data;
+  } catch (err) {
+    console.error("joinMeetup error:", err);
+    throw new Error(err.message || "Nätverksfel vid anmälan till meetup");
+  }
+}
+
+/**
+ * Lämna en meetup (kräver JWT-token)
+ */
+export async function leaveMeetup(id, token) {
+  try {
+    const res = await fetch(`${API_URL}/meetups/${id}/join`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    if (!res.ok)
+      throw new Error(
+        data.message || data.error || "Kunde inte lämna meetup"
+      );
+    return data;
+  } catch (err) {
+    console.error("leaveMeetup error:", err);
+    throw new Error(err.message || "Nätverksfel vid avanmälan från meetup");
+  }
 }

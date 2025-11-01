@@ -15,23 +15,27 @@ const Auth = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  // 🔹 Login-funktion – kopplad till backend
+  // Login-funktion – kopplad till backend
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
+  
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email");
+    const email = formData.get("email").trim().toLowerCase();
     const password = formData.get("password");
-
+  
     try {
       const data = await login(email, password);
-
+  
+      // Spara token + user i localStorage
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+  
       toast({
         title: "Välkommen!",
         description: `Inloggad som ${data.user.email}`,
       });
-
+  
       navigate("/meetups");
     } catch (error) {
       toast({
@@ -44,36 +48,43 @@ const Auth = () => {
     }
   };
 
-  // 🔹 Registrering – kopplad till backend
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+  //  Registrering – kopplad till backend
+const handleRegister = async (e) => {
+  e.preventDefault();
+  setIsLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const name = formData.get("name");
-    const email = formData.get("email");
-    const password = formData.get("password");
+  const formData = new FormData(e.currentTarget);
+  const name = formData.get("name");
+  const email = formData.get("email").trim().toLowerCase();
+  const password = formData.get("password");
 
-    try {
-      await register({ name, email, password });
+  try {
+    // Skapa konto via backend
+    await register({ name, email, password });
 
-      toast({
-        title: "Konto skapat!",
-        description: "Du kan nu logga in.",
-      });
+    // Logga in direkt efter lyckad registrering
+    const data = await login(email, password);
 
-      // Hoppa automatiskt till login-tab
-      document.querySelector('[data-state="active"]')?.click();
-    } catch (error) {
-      toast({
-        title: "Fel vid registrering",
-        description: error.message || "Kunde inte skapa konto.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    // Spara token + user i localStorage
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    toast({
+      title: "Konto skapat!",
+      description: "Du är nu inloggad.",
+    });
+
+    navigate("/meetups");
+  } catch (error) {
+    toast({
+      title: "Fel vid registrering",
+      description: error.message || "Kunde inte skapa konto.",
+      variant: "destructive",
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -149,7 +160,7 @@ const Auth = () => {
               </TabsTrigger>
             </TabsList>
 
-            {/* 🔹 Login-formulär */}
+            {/* Login-formulär */}
             <TabsContent value="login">
               <Card className="border-0 shadow-xl bg-card/50 backdrop-blur-sm">
                 <CardHeader className="text-center">
