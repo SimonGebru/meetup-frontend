@@ -183,6 +183,7 @@ const UpcomingEventsSection = ({
                     aria-label={`Visa ${meetup.title}`}
                   >
                     <EventCard {...meetup} />
+                    
                   </div>
                 ))}
               </div>

@@ -3,12 +3,12 @@ import { Code, Dumbbell, Palette, UtensilsCrossed, Music, Briefcase } from "luci
 
 const categories = [
   { name: "Alla", icon: null },
-  { name: "Teknik", icon: Code },
+  { name: "Tech", icon: Code },
   { name: "Sport", icon: Dumbbell },
-  { name: "Konst", icon: Palette },
-  { name: "Mat", icon: UtensilsCrossed },
-  { name: "Musik", icon: Music },
-  { name: "Affärer", icon: Briefcase },
+  { name: "Art", icon: Palette },
+  { name: "Food", icon: UtensilsCrossed },
+  { name: "Music", icon: Music },
+  { name: "Business", icon: Briefcase },
 ];
 
 const CategoryFilter = ({ activeCategory, onCategoryChange }) => {

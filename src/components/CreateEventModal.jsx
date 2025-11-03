@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, Tag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,7 @@ const defaultEvent = {
   title: "",
   date: "",
   location: "",
-  category: "",
+  categories: "",
   maxAttendees: 50,
   info: "",
 };
@@ -56,7 +56,7 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!form.title.trim()) {
       alert("Titel är obligatorisk.");
       return;
@@ -69,13 +69,28 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
       alert("Plats är obligatorisk.");
       return;
     }
-
-    // Kombinera korrekt datum + tid
+  
+    // Kombinera datum + tid
     const finalDate = combineDateTime(selectedDate, selectedTime);
-    const finalData = { ...form, date: finalDate };
-
+  
+    // ✅ Korrigera kategorier – gör alltid till array
+    let finalCategories = [];
+    if (form.categories) {
+      if (Array.isArray(form.categories)) {
+        finalCategories = form.categories;
+      } else if (typeof form.categories === "string" && form.categories.trim()) {
+        finalCategories = [form.categories.trim()];
+      }
+    }
+  
+    const finalData = {
+      ...form,
+      date: finalDate,
+      categories: finalCategories,
+    };
+  
     console.log("📦 Event data skickas till backend:", finalData);
-
+  
     try {
       setLoading(true);
       await onCreate(finalData);
@@ -113,16 +128,19 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
           </h3>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Titel */}
             <div>
               <Label htmlFor="title">Titel</Label>
               <Input id="title" name="title" value={form.title} onChange={handleChange} required />
             </div>
 
+            {/* Plats */}
             <div>
               <Label htmlFor="location">Plats</Label>
               <Input id="location" name="location" value={form.location} onChange={handleChange} required />
             </div>
 
+            {/* Datum & tid */}
             <div>
               <Label>Datum & tid</Label>
               <div className="flex flex-col md:flex-row gap-3 items-start md:items-end">
@@ -151,11 +169,28 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="category">Kategori</Label>
-              <Input id="category" name="category" value={form.category} onChange={handleChange} required />
-            </div>
+            {/* Kategori (endast tillåtna värden) */}
+<div>
+  <Label htmlFor="categories">Kategori</Label>
+  <select
+    id="categories"
+    name="categories"
+    value={form.categories}
+    onChange={handleChange}
+    required
+    className="w-full rounded-lg border border-border bg-background py-2 px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+  >
+    <option value="">Välj kategori</option>
+    <option value="Tech">Tech</option>
+    <option value="Sport">Sport</option>
+    <option value="Art">Art</option>
+    <option value="Food">Food</option>
+    <option value="Music">Music</option>
+    <option value="Business">Business</option>
+  </select>
+</div>
 
+            {/* Max antal deltagare */}
             <div>
               <Label htmlFor="maxAttendees">Max antal deltagare</Label>
               <Input
@@ -170,6 +205,7 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
               />
             </div>
 
+            {/* Beskrivning */}
             <div>
               <Label htmlFor="info">Information om evenemanget</Label>
               <textarea
@@ -184,6 +220,7 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
               />
             </div>
 
+            {/* Knappar */}
             <div className="flex gap-4 pt-2">
               <Button type="submit" className="flex-1 h-12 text-base font-bold" disabled={loading}>
                 {loading ? "Skapar..." : "Skapa evenemang"}

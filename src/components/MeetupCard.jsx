@@ -2,16 +2,16 @@ import { Calendar, MapPin, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-const MeetupCard = ({ title, date, location, attendees, maxAttendees, category, info }) => {
+const MeetupCard = ({ title, date, location, attendees, maxAttendees, categories, info }) => {
   return (
     <Card className="overflow-hidden rounded-2xl bg-background/80 border border-border/60 shadow-lg hover:shadow-xl hover:border-primary/60 transition-all duration-200 hover:scale-[1.025] cursor-pointer group backdrop-blur-md">
       {/* Bild/gradient-topp */}
       <div className="aspect-video bg-gradient-to-br from-primary/30 to-cyan-400/20 relative overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,hsl(var(--primary)/0.08)_50%,transparent_75%)] bg-[length:250%_250%] group-hover:animate-[shimmer_2s_ease-in-out_infinite]" />
         <div className="absolute bottom-3 left-3">
-          <Badge className="bg-primary/90 text-primary-foreground shadow-md px-3 py-1 text-xs font-semibold tracking-wide uppercase">
-            {category}
-          </Badge>
+        <Badge className="bg-primary/90 text-primary-foreground shadow-md px-3 py-1 text-xs font-semibold tracking-wide uppercase">
+  {Array.isArray(categories) && categories.length > 0 ? categories.join(", ") : " "}
+</Badge>
         </div>
       </div>
       {/* Innehåll */}
@@ -25,7 +25,16 @@ const MeetupCard = ({ title, date, location, attendees, maxAttendees, category, 
         <div className="space-y-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-primary/80" />
-            <span className="font-medium text-foreground/90">{date}</span>
+            <span className="font-medium text-foreground/90">
+  {new Date(date).toLocaleString("sv-SE", {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })}
+</span>
           </div>
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-accent/80" />
