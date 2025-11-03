@@ -21,7 +21,7 @@ const Meetups = () => {
   const { toast } = useToast();
   const exploreRef = useRef(null);
 
-  // 🔹 States
+  // States
   const [meetups, setMeetups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("All");
@@ -33,7 +33,7 @@ const Meetups = () => {
   const [selectedMeetup, setSelectedMeetup] = useState(null);
   const [meetupModal, setMeetupModal] = useState(null);
 
-  // 🔹 Hämta meetups vid sidstart
+  // Hämta meetups vid sidstart
   useEffect(() => {
     async function fetchMeetups() {
       try {
@@ -53,10 +53,10 @@ const Meetups = () => {
     fetchMeetups();
   }, []);
 
-  // 🔹 Unika platser för dropdown
+  // Unika platser för dropdown
   const uniqueLocations = Array.from(new Set(meetups.map((m) => m.location)));
 
-  // 🔹 Logout
+  // Logout
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -67,8 +67,7 @@ const Meetups = () => {
     navigate("/");
   };
 
-  // 🔹 Skapa nytt event
-  // 🔹 Skapa nytt event
+  // Skapa nytt event
 const handleCreateEvent = async (eventData) => {
   try {
     const token = localStorage.getItem("token");
@@ -92,7 +91,11 @@ const handleCreateEvent = async (eventData) => {
       location: eventData.location?.trim(),
       host: (user?.name && user.name.trim()) || user?.email || "Okänd värd",
       maxParticipants: Number(eventData.maxAttendees),
-      category: eventData.category?.trim(),
+      categories: Array.isArray(eventData.categories)
+  ? eventData.categories
+  : eventData.categories
+  ? [String(eventData.categories).trim()]
+  : [],
     };
 
     await createMeetup(meetupData, token);
@@ -177,7 +180,11 @@ const handleCreateEvent = async (eventData) => {
   // Filtreringslogik
   const filteredMeetups = meetups.filter((meetup) => {
     const matchesCategory =
-      activeCategory === "All" || meetup.category?.includes(activeCategory);
+  activeCategory === "All" ||
+  (Array.isArray(meetup.categories)
+    ? meetup.categories.includes(activeCategory)
+    : typeof meetup.category === "string" &&
+      meetup.category === activeCategory);
     const matchesSearch = meetup.title
       .toLowerCase()
       .includes(searchQuery.toLowerCase());

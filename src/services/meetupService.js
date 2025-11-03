@@ -47,7 +47,12 @@ export async function createMeetup(meetupData, token) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${authToken}`,
       },
-      body: JSON.stringify(meetupData),
+      body: JSON.stringify({
+        ...meetupData,
+        categories: Array.isArray(meetupData.categories)
+          ? meetupData.categories
+          : [meetupData.categories].filter(Boolean),
+      }),
     });
 
     

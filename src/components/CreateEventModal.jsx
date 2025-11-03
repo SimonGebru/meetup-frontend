@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar, Clock, Tag } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,7 @@ const defaultEvent = {
   title: "",
   date: "",
   location: "",
-  categories: "",
+  categories: ["Tech"], // alltid array-format som backend vill ha
   maxAttendees: 50,
   info: "",
 };
@@ -21,18 +21,24 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState("");
 
+  // Uppdaterad handleChange – säkerställer array-format för kategori
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "categories") {
+      setForm((prev) => ({ ...prev, [name]: [value] })); // alltid en array med ett värde
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  // Kombinera datum & tid till ISO med korrekt tidszon
+  // Kombinera datum & tid till ISO med rätt tidszon
   function combineDateTime(date, time) {
     const [hours, minutes] = time.split(":");
     const d = new Date(date);
     d.setHours(Number(hours), Number(minutes), 0, 0);
 
-    //  Konvertera till UTC utan att tappa 1 timme
+    //  Justerar för lokal tidszon
     const corrected = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
     return corrected.toISOString();
   }
@@ -54,9 +60,11 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
     }
   };
 
+  // Slutlig submit-funktion
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
+    // Grundvalidering
     if (!form.title.trim()) {
       alert("Titel är obligatorisk.");
       return;
@@ -69,28 +77,31 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
       alert("Plats är obligatorisk.");
       return;
     }
-  
+
     // Kombinera datum + tid
     const finalDate = combineDateTime(selectedDate, selectedTime);
-  
-    // ✅ Korrigera kategorier – gör alltid till array
+
+    // Säkerställ korrekt array-format
     let finalCategories = [];
-    if (form.categories) {
-      if (Array.isArray(form.categories)) {
-        finalCategories = form.categories;
-      } else if (typeof form.categories === "string" && form.categories.trim()) {
-        finalCategories = [form.categories.trim()];
-      }
+    if (Array.isArray(form.categories)) {
+      finalCategories = form.categories.filter(Boolean);
+    } else if (typeof form.categories === "string" && form.categories.trim()) {
+      finalCategories = [form.categories.trim()];
     }
-  
+    // Fallback om inget valts
+    if (finalCategories.length === 0) {
+      finalCategories = ["Tech"];
+    }
+
+    //Bygg objektet som skickas till backend
     const finalData = {
       ...form,
       date: finalDate,
       categories: finalCategories,
     };
-  
-    console.log("📦 Event data skickas till backend:", finalData);
-  
+
+   
+
     try {
       setLoading(true);
       await onCreate(finalData);
@@ -111,6 +122,7 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="bg-background/90 rounded-3xl shadow-2xl max-w-xl w-full p-0 relative animate-fade-in overflow-hidden border border-border/60">
+        {/* Header */}
         <div className="relative h-40 bg-gradient-to-br from-primary/30 to-cyan-400/20 flex items-center justify-center">
           <Calendar className="w-14 h-14 text-primary drop-shadow-lg" />
           <button
@@ -122,6 +134,7 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
           </button>
         </div>
 
+        {/* Formulär */}
         <div className="p-8">
           <h3 className="text-2xl font-bold mb-6 flex items-center gap-2 justify-center">
             Skapa nytt evenemang
@@ -169,28 +182,28 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
               </div>
             </div>
 
-            {/* Kategori (endast tillåtna värden) */}
-<div>
-  <Label htmlFor="categories">Kategori</Label>
-  <select
-    id="categories"
-    name="categories"
-    value={form.categories}
-    onChange={handleChange}
-    required
-    className="w-full rounded-lg border border-border bg-background py-2 px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
-  >
-    <option value="">Välj kategori</option>
-    <option value="Tech">Tech</option>
-    <option value="Sport">Sport</option>
-    <option value="Art">Art</option>
-    <option value="Food">Food</option>
-    <option value="Music">Music</option>
-    <option value="Business">Business</option>
-  </select>
-</div>
+            {/* Kategori */}
+            <div>
+              <Label htmlFor="categories">Kategori</Label>
+              <select
+                id="categories"
+                name="categories"
+                value={form.categories[0] || ""}
+                onChange={handleChange}
+                required
+                className="w-full rounded-lg border border-border bg-background py-2 px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+              >
+                <option value="">Välj kategori</option>
+                <option value="Tech">Teknik / Tech</option>
+                <option value="Sport">Sport</option>
+                <option value="Art">Konst</option>
+                <option value="Food">Mat</option>
+                <option value="Music">Musik</option>
+                <option value="Business">Affärer / Business</option>
+              </select>
+            </div>
 
-            {/* Max antal deltagare */}
+            {/* Max deltagare */}
             <div>
               <Label htmlFor="maxAttendees">Max antal deltagare</Label>
               <Input
@@ -205,7 +218,7 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
               />
             </div>
 
-            {/* Beskrivning */}
+            {/* Info */}
             <div>
               <Label htmlFor="info">Information om evenemanget</Label>
               <textarea
@@ -225,7 +238,12 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
               <Button type="submit" className="flex-1 h-12 text-base font-bold" disabled={loading}>
                 {loading ? "Skapar..." : "Skapa evenemang"}
               </Button>
-              <Button type="button" variant="outline" className="flex-1 h-12 text-base" onClick={onClose}>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 h-12 text-base"
+                onClick={onClose}
+              >
                 Avbryt
               </Button>
             </div>
