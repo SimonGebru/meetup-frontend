@@ -89,7 +89,7 @@ const About = () => {
                     </p>
                     <div className="flex justify-center lg:justify-start mt-2">
                       <a
-                        href="/"
+                        href="/meetups"
                         className="inline-block bg-primary text-primary-foreground font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-primary/90 transition-all text-lg"
                       >
                         Utforska Meetups
