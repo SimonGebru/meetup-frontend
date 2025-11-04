@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { DayPicker } from "react-day-picker";
+import { Badge } from "@/components/ui/badge";
 import "react-day-picker/dist/style.css";
 
 const defaultEvent = {
@@ -139,6 +140,13 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
           <h3 className="text-2xl font-bold mb-6 flex items-center gap-2 justify-center">
             Skapa nytt evenemang
           </h3>
+
+          {/* Visa badge om kategori är vald */}
+          {form.category && (
+            <div className="flex justify-center mb-4">
+              <Badge variant="default">{form.category}</Badge>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Titel */}
