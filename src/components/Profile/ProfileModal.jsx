@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import { User, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ReviewModal from "@/components/ReviewModal";
-import { getAllMeetups, createReview, getReviews } from "@/services/meetupService";
+import {
+  getAllMeetups,
+  createReview,
+  getReviews,
+} from "@/services/meetupService";
 import MeetupList from "./MeetupList";
 import MeetupDetails from "./MeetupDetails";
 import EmptyState from "./EmptyState";
@@ -113,9 +117,8 @@ const ProfileModal = ({
         setReviews((prev) => {
           const filtered = prev.filter(
             (r) =>
-              (typeof r.meetupId === "object"
-                ? r.meetupId._id
-                : r.meetupId) !== meetupId
+              (typeof r.meetupId === "object" ? r.meetupId._id : r.meetupId) !==
+              meetupId
           );
           return [...filtered, ...newReviews];
         });
@@ -184,8 +187,21 @@ const ProfileModal = ({
 
   if (!show) return null;
 
+  const handleBackdropClick = (e) => {
+    // Only close if clicking the backdrop, not the modal content
+    if (e.target === e.currentTarget) {
+      onClose();
+      setSelectedMeetup(null);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+    >
       <div className="bg-background/90 rounded-3xl shadow-2xl w-full max-w-xl h-[85vh] flex flex-col overflow-hidden border border-border/60">
         {/* Header */}
         <div className="relative h-40 flex-shrink-0 bg-gradient-to-br from-primary/30 to-cyan-400/20 flex items-center justify-center">
