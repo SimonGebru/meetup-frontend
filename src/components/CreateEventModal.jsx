@@ -15,7 +15,8 @@ const defaultEvent = {
   info: "",
 };
 
-const CreateEventModal = ({ show, onClose, onCreate }) => {
+// Ta emot categories som prop
+const CreateEventModal = ({ show, onClose, onCreate, categories = [] }) => {
   const [form, setForm] = useState(defaultEvent);
   const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -176,13 +177,23 @@ const CreateEventModal = ({ show, onClose, onCreate }) => {
 
             <div>
               <Label htmlFor="category">Kategori</Label>
-              <Input
+              <select
                 id="category"
                 name="category"
                 value={form.category}
                 onChange={handleChange}
                 required
-              />
+                className="w-full mt-1 rounded-lg border border-border bg-background/60 p-2 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+              >
+                <option value="" disabled>
+                  Välj kategori
+                </option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
