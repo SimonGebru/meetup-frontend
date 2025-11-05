@@ -4,36 +4,41 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { DayPicker } from "react-day-picker";
+import { Badge } from "@/components/ui/badge";
 import "react-day-picker/dist/style.css";
 
 const defaultEvent = {
   title: "",
   date: "",
   location: "",
-  category: "",
+  categories: ["Tech"], // alltid array-format som backend vill ha
   maxAttendees: 50,
   info: "",
 };
 
-// Ta emot categories som prop
-const CreateEventModal = ({ show, onClose, onCreate, categories = [] }) => {
+const CreateEventModal = ({ show, onClose, onCreate }) => {
   const [form, setForm] = useState(defaultEvent);
   const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState("");
 
+  // Uppdaterad handleChange – säkerställer array-format för kategori
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "categories") {
+      setForm((prev) => ({ ...prev, [name]: [value] })); // alltid en array
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  // Kombinera datum & tid till ISO med korrekt tidszon
+  // Kombinera datum & tid till ISO (korrigerad tidszon)
   function combineDateTime(date, time) {
     const [hours, minutes] = time.split(":");
     const d = new Date(date);
     d.setHours(Number(hours), Number(minutes), 0, 0);
-
-    //  Konvertera till UTC utan att tappa 1 timme
+    // Konvertera till UTC utan att tappa 1 timme
     const corrected = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
     return corrected.toISOString();
   }
@@ -55,9 +60,11 @@ const CreateEventModal = ({ show, onClose, onCreate, categories = [] }) => {
     }
   };
 
+  // Submit-funktion
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Grundvalidering
     if (!form.title.trim()) {
       alert("Titel är obligatorisk.");
       return;
@@ -73,7 +80,24 @@ const CreateEventModal = ({ show, onClose, onCreate, categories = [] }) => {
 
     // Kombinera korrekt datum + tid
     const finalDate = combineDateTime(selectedDate, selectedTime);
-    const finalData = { ...form, date: finalDate };
+
+    // Säkerställ korrekt array-format
+    let finalCategories = [];
+    if (Array.isArray(form.categories)) {
+      finalCategories = form.categories.filter(Boolean);
+    } else if (typeof form.categories === "string" && form.categories.trim()) {
+      finalCategories = [form.categories.trim()];
+    }
+    if (finalCategories.length === 0) {
+      finalCategories = ["Tech"];
+    }
+
+    // Objektet som skickas till backend
+    const finalData = {
+      ...form,
+      date: finalDate,
+      categories: finalCategories,
+    };
 
     console.log("📦 Event data skickas till backend:", finalData);
 
@@ -108,6 +132,7 @@ const CreateEventModal = ({ show, onClose, onCreate, categories = [] }) => {
       aria-modal="true"
     >
       <div className="bg-background/90 rounded-3xl shadow-2xl max-w-xl w-full p-0 relative animate-fade-in overflow-hidden border border-border/60">
+        {/* Header */}
         <div className="relative h-40 bg-gradient-to-br from-primary/30 to-cyan-400/20 flex items-center justify-center">
           <Calendar className="w-14 h-14 text-primary drop-shadow-lg" />
           <button
@@ -119,12 +144,20 @@ const CreateEventModal = ({ show, onClose, onCreate, categories = [] }) => {
           </button>
         </div>
 
+        {/* Formulär */}
         <div className="p-8">
           <h3 className="text-2xl font-bold mb-6 flex items-center gap-2 justify-center">
             Skapa nytt evenemang
           </h3>
 
+          {form.categories[0] && (
+            <div className="flex justify-center mb-4">
+              <Badge variant="default">{form.categories[0]}</Badge>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Titel */}
             <div>
               <Label htmlFor="title">Titel</Label>
               <Input
@@ -136,6 +169,7 @@ const CreateEventModal = ({ show, onClose, onCreate, categories = [] }) => {
               />
             </div>
 
+            {/* Plats */}
             <div>
               <Label htmlFor="location">Plats</Label>
               <Input
@@ -147,6 +181,7 @@ const CreateEventModal = ({ show, onClose, onCreate, categories = [] }) => {
               />
             </div>
 
+            {/* Datum & tid */}
             <div>
               <Label>Datum & tid</Label>
               <div className="flex flex-col md:flex-row gap-3 items-start md:items-end">
@@ -175,27 +210,28 @@ const CreateEventModal = ({ show, onClose, onCreate, categories = [] }) => {
               </div>
             </div>
 
+            {/* Kategori */}
             <div>
-              <Label htmlFor="category">Kategori</Label>
+              <Label htmlFor="categories">Kategori</Label>
               <select
-                id="category"
-                name="category"
-                value={form.category}
+                id="categories"
+                name="categories"
+                value={form.categories[0] || ""}
                 onChange={handleChange}
+                className="w-full rounded-lg border border-border bg-background py-2 px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                 required
-                className="w-full mt-1 rounded-lg border border-border bg-background/60 p-2 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
               >
-                <option value="" disabled>
-                  Välj kategori
-                </option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
+                <option value="">Välj kategori</option>
+                <option value="Tech">Teknik / Tech</option>
+                <option value="Sport">Sport</option>
+                <option value="Art">Konst</option>
+                <option value="Food">Mat</option>
+                <option value="Music">Musik</option>
+                <option value="Business">Affärer / Business</option>
               </select>
             </div>
 
+            {/* Max deltagare */}
             <div>
               <Label htmlFor="maxAttendees">Max antal deltagare</Label>
               <Input
@@ -210,6 +246,7 @@ const CreateEventModal = ({ show, onClose, onCreate, categories = [] }) => {
               />
             </div>
 
+            {/* Info */}
             <div>
               <Label htmlFor="info">Information om evenemanget</Label>
               <textarea
@@ -224,6 +261,7 @@ const CreateEventModal = ({ show, onClose, onCreate, categories = [] }) => {
               />
             </div>
 
+            {/* Knappar */}
             <div className="flex gap-4 pt-2">
               <Button
                 type="submit"
