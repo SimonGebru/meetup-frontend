@@ -16,12 +16,16 @@ const MeetupInfoModal = ({ meetup, onRegister, onUnregister, onClose }) => {
     Array.isArray(meetup.participants) ? meetup.participants.length : 0
   );
 
-  
   const [pulse, setPulse] = useState(false);
 
   useEffect(() => {
-    setRegistered(Array.isArray(meetup.participants) && meetup.participants.includes(user?.id));
-    setParticipantCount(Array.isArray(meetup.participants) ? meetup.participants.length : 0);
+    setRegistered(
+      Array.isArray(meetup.participants) &&
+        meetup.participants.includes(user?.id)
+    );
+    setParticipantCount(
+      Array.isArray(meetup.participants) ? meetup.participants.length : 0
+    );
   }, [meetup]);
 
   const formatDate = (isoDate) =>
@@ -34,7 +38,8 @@ const MeetupInfoModal = ({ meetup, onRegister, onUnregister, onClose }) => {
       minute: "2-digit",
     });
 
-  const description = meetup.description || meetup.info || "Ingen beskrivning tillgänglig.";
+  const description =
+    meetup.description || meetup.info || "Ingen beskrivning tillgänglig.";
   const categories = Array.isArray(meetup.categories)
     ? meetup.categories.join(", ")
     : meetup.category || "Okänd kategori";
@@ -43,7 +48,8 @@ const MeetupInfoModal = ({ meetup, onRegister, onUnregister, onClose }) => {
     typeof meetup.maxParticipants === "number" &&
     participantCount >= meetup.maxParticipants;
 
-  const triggerRefresh = () => document.dispatchEvent(new CustomEvent("meetup-updated"));
+  const triggerRefresh = () =>
+    document.dispatchEvent(new CustomEvent("meetup-updated"));
 
   // Anmälan
   const handleRegisterClick = async () => {
@@ -82,7 +88,8 @@ const MeetupInfoModal = ({ meetup, onRegister, onUnregister, onClose }) => {
       setRegistered(false);
       setParticipantCount((prev) => Math.max(0, prev - 1));
 
-      meetup.participants = meetup.participants?.filter((id) => id !== user?.id) || [];
+      meetup.participants =
+        meetup.participants?.filter((id) => id !== user?.id) || [];
 
       toast({
         title: "Avanmälan genomförd",
@@ -101,8 +108,19 @@ const MeetupInfoModal = ({ meetup, onRegister, onUnregister, onClose }) => {
     }
   };
 
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+    >
       <div className="bg-background/90 rounded-3xl shadow-2xl max-w-xl w-full p-0 relative animate-fade-in overflow-hidden border border-border/60">
         {/* Header */}
         <div className="relative h-40 bg-gradient-to-br from-primary/30 to-cyan-400/20 flex items-center justify-center">
@@ -130,7 +148,9 @@ const MeetupInfoModal = ({ meetup, onRegister, onUnregister, onClose }) => {
               <Users className="w-4 h-4" />
               {participantCount} / {meetup.maxParticipants || "?"} deltagare
               {isFull && (
-                <span className="ml-2 text-xs text-red-500 font-semibold">(Fullbokat)</span>
+                <span className="ml-2 text-xs text-red-500 font-semibold">
+                  (Fullbokat)
+                </span>
               )}
             </span>
             <span className="inline-block bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-medium">

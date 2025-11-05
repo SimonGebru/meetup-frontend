@@ -188,7 +188,6 @@ const ProfileModal = ({
   if (!show) return null;
 
   const handleBackdropClick = (e) => {
-    // Only close if clicking the backdrop, not the modal content
     if (e.target === e.currentTarget) {
       onClose();
       setSelectedMeetup(null);
