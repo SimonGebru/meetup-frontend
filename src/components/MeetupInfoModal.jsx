@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getAllMeetups } from "@/services/meetupService";
 import { Calendar, MapPin, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,6 +10,7 @@ const MeetupInfoModal = ({ meetup, onRegister, onUnregister, onClose }) => {
 
   const { toast } = useToast();
   const user = JSON.parse(localStorage.getItem("user"));
+  const [latestMeetup, setLatestMeetup] = useState(meetup);
   const [registered, setRegistered] = useState(
     Array.isArray(meetup.participants) && meetup.participants.includes(user?.id)
   );
@@ -19,13 +21,34 @@ const MeetupInfoModal = ({ meetup, onRegister, onUnregister, onClose }) => {
   const [pulse, setPulse] = useState(false);
 
   useEffect(() => {
-    setRegistered(
-      Array.isArray(meetup.participants) &&
-        meetup.participants.includes(user?.id)
-    );
-    setParticipantCount(
-      Array.isArray(meetup.participants) ? meetup.participants.length : 0
-    );
+    // Hämta senaste meetup-data från API när modalen öppnas eller meetup._id ändras
+    const fetchLatestMeetup = async () => {
+      if (!meetup?._id) return;
+      try {
+        const all = await getAllMeetups();
+        const found = all.find((m) => m._id === meetup._id);
+        if (found) {
+          setLatestMeetup(found);
+          setRegistered(
+            Array.isArray(found.participants) &&
+              found.participants.includes(user?.id)
+          );
+          setParticipantCount(
+            Array.isArray(found.participants) ? found.participants.length : 0
+          );
+        }
+      } catch (err) {
+        setLatestMeetup(meetup);
+        setRegistered(
+          Array.isArray(meetup.participants) &&
+            meetup.participants.includes(user?.id)
+        );
+        setParticipantCount(
+          Array.isArray(meetup.participants) ? meetup.participants.length : 0
+        );
+      }
+    };
+    fetchLatestMeetup();
   }, [meetup]);
 
   const formatDate = (isoDate) =>
@@ -39,14 +62,16 @@ const MeetupInfoModal = ({ meetup, onRegister, onUnregister, onClose }) => {
     });
 
   const description =
-    meetup.description || meetup.info || "Ingen beskrivning tillgänglig.";
-  const categories = Array.isArray(meetup.categories)
-    ? meetup.categories.join(", ")
-    : meetup.category || "Okänd kategori";
+    latestMeetup?.description ||
+    latestMeetup?.info ||
+    "Ingen beskrivning tillgänglig.";
+  const categories = Array.isArray(latestMeetup?.categories)
+    ? latestMeetup.categories.join(", ")
+    : latestMeetup?.category || "Okänd kategori";
 
   const isFull =
-    typeof meetup.maxParticipants === "number" &&
-    participantCount >= meetup.maxParticipants;
+    typeof latestMeetup?.maxParticipants === "number" &&
+    participantCount >= latestMeetup.maxParticipants;
 
   const triggerRefresh = () =>
     document.dispatchEvent(new CustomEvent("meetup-updated"));
@@ -136,7 +161,7 @@ const MeetupInfoModal = ({ meetup, onRegister, onUnregister, onClose }) => {
 
         {/* Innehåll */}
         <div className="p-8">
-          <h3 className="text-2xl font-bold mb-2">{meetup.title}</h3>
+          <h3 className="text-2xl font-bold mb-2">{latestMeetup?.title}</h3>
 
           {/* Metadata */}
           <div className="flex flex-wrap gap-3 mb-4 text-muted-foreground text-sm items-center">
@@ -146,7 +171,8 @@ const MeetupInfoModal = ({ meetup, onRegister, onUnregister, onClose }) => {
             </span>
             <span className="flex items-center gap-1">
               <Users className="w-4 h-4" />
-              {participantCount} / {meetup.maxParticipants || "?"} deltagare
+              {participantCount} / {latestMeetup?.maxParticipants || "?"}{" "}
+              deltagare
               {isFull && (
                 <span className="ml-2 text-xs text-red-500 font-semibold">
                   (Fullbokat)
