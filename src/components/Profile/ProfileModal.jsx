@@ -45,6 +45,20 @@ const ProfileModal = ({
     return isFuture && isParticipant;
   });
 
+  // Avanmälan från meetup (global sync)
+  const handleUnregisterFromMeetup = async (meetupId, onUnregister) => {
+    try {
+      await onUnregister(meetupId);
+      document.dispatchEvent(new CustomEvent("meetup-updated"));
+    } catch (err) {
+      toast({
+        title: "Kunde inte avanmäla dig",
+        description: err.message || "Försök igen om en stund.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const pastMeetups = meetups.filter((m) => {
     if (!m.date) return false;
     const meetupDate = new Date(m.date);
@@ -207,9 +221,13 @@ const ProfileModal = ({
           <User className="w-14 h-14 text-primary drop-shadow-lg mb-2" />
           {user && (
             <div className="text-center mt-1">
-              <div className="font-bold text-lg text-foreground">{user.name || user.email}</div>
+              <div className="font-bold text-lg text-foreground">
+                {user.name || user.email}
+              </div>
               {user.email && user.name && (
-                <div className="text-sm text-muted-foreground">{user.email}</div>
+                <div className="text-sm text-muted-foreground">
+                  {user.email}
+                </div>
               )}
             </div>
           )}
