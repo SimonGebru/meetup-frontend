@@ -106,7 +106,7 @@
   }
 }
 
-/* Anpassad scrollbar för ProfileModal och andra listor */
+/* Anpassad scrollbar */
 .custom-scroll::-webkit-scrollbar {
   width: 6px;
 }
@@ -129,4 +129,15 @@
 .custom-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgba(120, 120, 120, 0.4) transparent;
+}
+
+
+@keyframes fade {
+  0% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+.animate-fade {
+  animation: fade 2s ease-in-out forwards;
 }

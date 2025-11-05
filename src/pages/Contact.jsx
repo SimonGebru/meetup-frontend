@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ProfileModal from "@/components/ProfileModal";
+import ProfileModal from "@/components/Profile/ProfileModal";
 import heroImage from "@/assets/heroimage-meetup.jpg";
 import { Mail, MessageSquare, User } from "lucide-react";
 

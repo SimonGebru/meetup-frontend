@@ -45,7 +45,7 @@ const MeetupInfoModal = ({ meetup, onRegister, onUnregister, onClose }) => {
 
   const triggerRefresh = () => document.dispatchEvent(new CustomEvent("meetup-updated"));
 
-  // 🔹 Anmälan
+  // Anmälan
   const handleRegisterClick = async () => {
     try {
       await onRegister(meetup._id);
@@ -75,7 +75,7 @@ const MeetupInfoModal = ({ meetup, onRegister, onUnregister, onClose }) => {
     }
   };
 
-  // 🔹 Avanmälan
+  // Avanmälan
   const handleUnregisterClick = async () => {
     try {
       await onUnregister(meetup._id);

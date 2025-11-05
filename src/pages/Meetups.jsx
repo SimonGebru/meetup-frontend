@@ -6,7 +6,7 @@ import { Plus, Search, ArrowRight } from "lucide-react";
 import UpcomingEventsSection from "@/components/UpcomingEventsSection";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ProfileModal from "@/components/ProfileModal";
+import ProfileModal from "@/components/Profile/ProfileModal";
 import { useToast } from "@/hooks/use-toast";
 import heroImage from "@/assets/heroimage-meetup.jpg";
 import {

@@ -36,7 +36,7 @@ export async function login(email, password) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Felaktiga inloggningsuppgifter");
 
-    // 🔹 Spara token & user lokalt
+    // Spara token & user lokalt
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
 

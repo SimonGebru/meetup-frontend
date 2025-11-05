@@ -9,7 +9,7 @@ export default function ReviewModal({ show, onClose, meetup, onSubmit }) {
 
   if (!show || !meetup) return null;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (rating === 0) {
       toast({
         title: "Välj ett betyg",
@@ -18,18 +18,44 @@ export default function ReviewModal({ show, onClose, meetup, onSubmit }) {
       });
       return;
     }
-
-    const review = {
-      meetupId: meetup.id,
-      rating,
-      comment,
-      createdAt: new Date().toISOString(),
-    };
-
-    onSubmit(review);
-    setRating(0);
-    setComment("");
-    onClose();
+  
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast({
+          title: "Inte inloggad",
+          description: "Du måste vara inloggad för att lämna recension.",
+          variant: "destructive",
+        });
+        return;
+      }
+  
+      const newReview = {
+        meetupId: meetup._id || meetup.id, 
+        rating,
+        comment,
+        createdAt: new Date().toISOString(),
+      };
+  
+      console.log("Skickar review:", newReview);
+  
+      await onSubmit(newReview); 
+  
+      toast({
+        title: "Tack för din recension!",
+        description: "Din feedback har sparats.",
+      });
+  
+      setRating(0);
+      setComment("");
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Kunde inte spara recension",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (

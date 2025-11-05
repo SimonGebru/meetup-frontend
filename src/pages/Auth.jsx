@@ -223,7 +223,7 @@ const handleRegister = async (e) => {
               </Card>
             </TabsContent>
 
-            {/* 🔹 Register-formulär */}
+            {/* Register-formulär */}
             <TabsContent value="register">
               <Card className="border-0 shadow-xl bg-card/50 backdrop-blur-sm">
                 <CardHeader className="text-center">

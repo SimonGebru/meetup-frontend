@@ -120,3 +120,41 @@ export async function leaveMeetup(id, token) {
     throw new Error(err.message || "Nätverksfel vid avanmälan från meetup");
   }
 }
+
+/**
+ * Skapa en recension för ett meetup
+ */
+export async function createReview(meetupId, reviewData, token) {
+  try {
+    const res = await fetch(`${API_URL}/meetups/${meetupId}/reviews`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(reviewData),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Kunde inte skapa recension");
+    return data.review;
+  } catch (err) {
+    console.error("createReview error:", err);
+    throw new Error(err.message || "Nätverksfel vid skapande av recension");
+  }
+}
+
+/**
+ * Hämta recensioner för ett meetup
+ */
+export async function getReviews(meetupId) {
+  try {
+    const res = await fetch(`${API_URL}/meetups/${meetupId}/reviews`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Kunde inte hämta recensioner");
+    return data.reviews;
+  } catch (err) {
+    console.error("getReviews error:", err);
+    throw new Error(err.message || "Nätverksfel vid hämtning av recensioner");
+  }
+}
