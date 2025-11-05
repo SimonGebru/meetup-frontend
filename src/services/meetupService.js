@@ -18,6 +18,43 @@ export async function getAllMeetups() {
 }
 
 /**
+ * Hämta filtrerade meetups (via /meetups/filters)
+ */
+export async function getFilteredMeetups(filters = {}) {
+  try {
+    
+    const params = new URLSearchParams();
+
+    if (filters.from) params.append("from", filters.from);
+    if (filters.to) params.append("to", filters.to);
+    if (filters.location) params.append("location", filters.location);
+    if (filters.categories) {
+      if (Array.isArray(filters.categories)) {
+        filters.categories.forEach((cat) => params.append("categories", cat));
+      } else {
+        params.append("categories", filters.categories);
+      }
+    }
+
+    const url = `${API_URL}/meetups/filters?${params.toString()}`;
+    console.log(" Anropar backend för filtrerade meetups:", url);
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Kunde inte filtrera meetups");
+    }
+
+    console.log("Backend svarade med:", data);
+    return data;
+  } catch (err) {
+    console.error("getFilteredMeetups error:", err);
+    throw new Error(err.message || "Nätverksfel vid filtrering av meetups");
+  }
+}
+
+/**
  * Hämta en specifik meetup via ID
  */
 export async function getMeetupById(id) {

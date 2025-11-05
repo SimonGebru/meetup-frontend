@@ -14,6 +14,7 @@ import {
   joinMeetup,
   leaveMeetup,
   createMeetup,
+  getFilteredMeetups, 
 } from "@/services/meetupService";
 
 const Meetups = () => {
@@ -24,7 +25,7 @@ const Meetups = () => {
   // States
   const [meetups, setMeetups] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory, setActiveCategory] = useState("Alla");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState("");
@@ -40,6 +41,7 @@ const Meetups = () => {
         setLoading(true);
         const data = await getAllMeetups();
         setMeetups(data);
+        console.log("Hämtade alla meetups vid sidstart:", data);
       } catch (error) {
         toast({
           title: "Fel vid hämtning av meetups",
@@ -52,6 +54,52 @@ const Meetups = () => {
     }
     fetchMeetups();
   }, []);
+
+  // Hämta filtrerade meetups när filter ändras
+  useEffect(() => {
+    const fetchFilteredMeetups = async () => {
+      try {
+        setLoading(true);
+
+        const noFilters =
+          activeCategory === "Alla" && !selectedDate && !selectedLocation;
+
+        if (noFilters) {
+          const allData = await getAllMeetups();
+          setMeetups(allData);
+          console.log("ℹ️ Inga filter aktiva, hämtar alla meetups");
+          return;
+        }
+
+        const filters = {};
+        if (activeCategory !== "Alla") filters.categories = activeCategory;
+        if (selectedLocation) filters.location = selectedLocation;
+
+        if (selectedDate) {
+          const date = new Date(selectedDate);
+          filters.from = date.toISOString();
+          filters.to = date.toISOString();
+        }
+
+        const res = await getFilteredMeetups(filters);
+        console.log("Filtreringsförfrågan skickad med:", filters);
+        console.log("Filtrerade meetups:", res);
+
+        setMeetups(res.meetups || []);
+      } catch (error) {
+        console.error("Fel vid filtrering:", error);
+        toast({
+          title: "Fel vid filtrering",
+          description: error.message || "Kunde inte hämta filtrerade meetups.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFilteredMeetups();
+  }, [activeCategory, selectedDate, selectedLocation]);
 
   // Unika platser för dropdown
   const uniqueLocations = Array.from(new Set(meetups.map((m) => m.location)));
@@ -68,57 +116,56 @@ const Meetups = () => {
   };
 
   // Skapa nytt event
-const handleCreateEvent = async (eventData) => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
+  const handleCreateEvent = async (eventData) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast({
+          title: "Du måste vara inloggad",
+          description: "Logga in för att skapa ett meetup.",
+          variant: "destructive",
+        });
+        navigate("/");
+        return;
+      }
+
+      const userRaw = localStorage.getItem("user");
+      const user = userRaw ? JSON.parse(userRaw) : null;
+
+      const meetupData = {
+        title: eventData.title?.trim(),
+        description: eventData.info?.trim(),
+        date: eventData.date,
+        location: eventData.location?.trim(),
+        host: (user?.name && user.name.trim()) || user?.email || "Okänd värd",
+        maxParticipants: Number(eventData.maxAttendees),
+        categories: Array.isArray(eventData.categories)
+          ? eventData.categories
+          : eventData.categories
+          ? [String(eventData.categories).trim()]
+          : [],
+      };
+
+      await createMeetup(meetupData, token);
+
+      const updatedList = await getAllMeetups();
+      setMeetups(updatedList);
+
       toast({
-        title: "Du måste vara inloggad",
-        description: "Logga in för att skapa ett meetup.",
+        title: "Meetup skapat!",
+        description: `Eventet "${meetupData.title}" har skapats.`,
+      });
+
+      document.dispatchEvent(new CustomEvent("meetup-updated"));
+    } catch (error) {
+      console.error("handleCreateEvent error:", error);
+      toast({
+        title: "Fel vid skapande av meetup",
+        description: error.message || "Kunde inte skapa eventet.",
         variant: "destructive",
       });
-      navigate("/");
-      return;
     }
-
-    const userRaw = localStorage.getItem("user");
-    const user = userRaw ? JSON.parse(userRaw) : null;
-
-    const meetupData = {
-      title: eventData.title?.trim(),
-      description: eventData.info?.trim(),
-      date: eventData.date, 
-      location: eventData.location?.trim(),
-      host: (user?.name && user.name.trim()) || user?.email || "Okänd värd",
-      maxParticipants: Number(eventData.maxAttendees),
-      categories: Array.isArray(eventData.categories)
-  ? eventData.categories
-  : eventData.categories
-  ? [String(eventData.categories).trim()]
-  : [],
-    };
-
-    await createMeetup(meetupData, token);
-
-    //  Hämta uppdaterad lista från backend så allt är i sync
-    const updatedList = await getAllMeetups();
-    setMeetups(updatedList);
-
-    toast({
-      title: "Meetup skapat!",
-      description: `Eventet "${meetupData.title}" har skapats.`,
-    });
-
-    document.dispatchEvent(new CustomEvent("meetup-updated"));
-  } catch (error) {
-    console.error("handleCreateEvent error:", error);
-    toast({
-      title: "Fel vid skapande av meetup",
-      description: error.message || "Kunde inte skapa eventet.",
-      variant: "destructive",
-    });
-  }
-};
+  };
 
   // Gå med i meetup
   const handleRegister = async (id) => {
@@ -135,8 +182,6 @@ const handleCreateEvent = async (eventData) => {
 
       const data = await getAllMeetups();
       setMeetups(data);
-
-      // Trigga global refresh
       document.dispatchEvent(new CustomEvent("meetup-updated"));
     } catch (error) {
       toast({
@@ -147,7 +192,7 @@ const handleCreateEvent = async (eventData) => {
     }
   };
 
-  //  Lämna meetup
+  // Lämna meetup
   const handleUnregister = async (id) => {
     try {
       const token = localStorage.getItem("token");
@@ -165,8 +210,6 @@ const handleCreateEvent = async (eventData) => {
 
       const data = await getAllMeetups();
       setMeetups(data);
-
-      // Trigga global refresh
       document.dispatchEvent(new CustomEvent("meetup-updated"));
     } catch (error) {
       toast({
@@ -177,34 +220,8 @@ const handleCreateEvent = async (eventData) => {
     }
   };
 
-  // Filtreringslogik
-  const filteredMeetups = meetups.filter((meetup) => {
-    const matchesCategory =
-  activeCategory === "All" ||
-  (Array.isArray(meetup.categories)
-    ? meetup.categories.includes(activeCategory)
-    : typeof meetup.category === "string" &&
-      meetup.category === activeCategory);
-    const matchesSearch = meetup.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesLocation =
-      !selectedLocation || meetup.location === selectedLocation;
-
-    if (selectedDate) {
-      const meetupDate = new Date(meetup.date);
-      return (
-        matchesCategory &&
-        matchesSearch &&
-        matchesLocation &&
-        meetupDate.getFullYear() === selectedDate.getFullYear() &&
-        meetupDate.getMonth() === selectedDate.getMonth() &&
-        meetupDate.getDate() === selectedDate.getDate()
-      );
-    }
-
-    return matchesCategory && matchesSearch && matchesLocation;
-  });
+  // Backend hanterar nu filtrering — ingen lokal logik behövs
+  const filteredMeetups = meetups;
 
   return (
     <div className="min-h-screen bg-background">
@@ -229,7 +246,6 @@ const handleCreateEvent = async (eventData) => {
 
         <div className="relative h-full container mx-auto px-4 flex flex-col justify-center max-w-5xl pt-12 pb-20">
           <div className="space-y-8 animate-fade-in">
-            {/* Main Header */}
             <div className="space-y-4">
               <h1 className="text-6xl md:text-7xl font-extrabold leading-tight tracking-tight">
                 Där idéer{" "}
@@ -250,7 +266,6 @@ const handleCreateEvent = async (eventData) => {
               </p>
             </div>
 
-            {/* Action-knappar */}
             <div className="flex flex-col sm:flex-row gap-4 pt-6">
               <Button
                 size="lg"
@@ -298,7 +313,7 @@ const handleCreateEvent = async (eventData) => {
             setSelectedLocation={setSelectedLocation}
             uniqueLocations={uniqueLocations}
             filteredMeetups={filteredMeetups}
-            setFilteredMeetups={setMeetups} 
+            setFilteredMeetups={setMeetups}
             meetupModal={meetupModal}
             setMeetupModal={setMeetupModal}
             handleRegister={handleRegister}
@@ -307,7 +322,6 @@ const handleCreateEvent = async (eventData) => {
         </div>
       )}
 
-      {/* Skapa nytt event */}
       <CreateEventModal
         show={showCreateEvent}
         onClose={() => setShowCreateEvent(false)}
