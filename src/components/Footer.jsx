@@ -29,7 +29,7 @@ const Footer = () => (
         </a>
       </nav>
       <div className="text-xs text-muted-foreground text-center md:text-right">
-        &copy; {new Date().getFullYear()} MeetUp. Alla rättigheter förbehållna.
+        &copy; {new Date().getFullYear()} MeetUpz. Alla rättigheter förbehållna.
       </div>
     </div>
   </footer>
