@@ -2,9 +2,15 @@ import { Calendar, MapPin, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-const MeetupCard = ({ title, date, location, attendees, maxAttendees, categories, info }) => {
-  
-
+const MeetupCard = ({
+  title,
+  date,
+  location,
+  participants,
+  maxParticipants,
+  categories,
+  info,
+}) => {
   // Hantera datumformatering
   const formattedDate = new Date(date).toLocaleString("sv-SE", {
     weekday: "short",
@@ -17,9 +23,13 @@ const MeetupCard = ({ title, date, location, attendees, maxAttendees, categories
 
   // Välj första kategorin (backend skickar array)
   const categoryLabel =
-    Array.isArray(categories) && categories.length > 0
-      ? categories[0]
-      : null;
+    Array.isArray(categories) && categories.length > 0 ? categories[0] : null;
+
+  // Samma logik som MeetupInfoModal
+  const participantCount = Array.isArray(participants)
+    ? participants.length
+    : 0;
+  const maxCount = typeof maxParticipants === "number" ? maxParticipants : "?";
 
   return (
     <Card className="overflow-hidden rounded-2xl bg-background/80 border border-border/60 shadow-lg hover:shadow-xl hover:border-primary/60 transition-all duration-200 hover:scale-[1.025] cursor-pointer group backdrop-blur-md">
@@ -45,14 +55,18 @@ const MeetupCard = ({ title, date, location, attendees, maxAttendees, categories
 
         {/* Beskrivning */}
         {info && (
-          <div className="text-sm text-muted-foreground line-clamp-2 mb-1">{info}</div>
+          <div className="text-sm text-muted-foreground line-clamp-2 mb-1">
+            {info}
+          </div>
         )}
 
         {/* Metadata */}
         <div className="space-y-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-primary/80" />
-            <span className="font-medium text-foreground/90">{formattedDate}</span>
+            <span className="font-medium text-foreground/90">
+              {formattedDate}
+            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -63,8 +77,7 @@ const MeetupCard = ({ title, date, location, attendees, maxAttendees, categories
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-primary/70" />
             <span className="font-medium text-foreground/70">
-              {attendees}
-              {typeof maxAttendees === "number" ? ` / ${maxAttendees}` : ""} deltagare
+              {participantCount} / {maxCount} deltagare
             </span>
           </div>
         </div>
