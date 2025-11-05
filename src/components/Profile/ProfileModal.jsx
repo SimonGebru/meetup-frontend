@@ -45,6 +45,20 @@ const ProfileModal = ({
     return isFuture && isParticipant;
   });
 
+  // Avanmälan från meetup (global sync)
+  const handleUnregisterFromMeetup = async (meetupId, onUnregister) => {
+    try {
+      await onUnregister(meetupId);
+      document.dispatchEvent(new CustomEvent("meetup-updated"));
+    } catch (err) {
+      toast({
+        title: "Kunde inte avanmäla dig",
+        description: err.message || "Försök igen om en stund.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const pastMeetups = meetups.filter((m) => {
     if (!m.date) return false;
     const meetupDate = new Date(m.date);
@@ -190,7 +204,6 @@ const ProfileModal = ({
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
-      setSelectedMeetup(null);
     }
   };
 
@@ -203,8 +216,20 @@ const ProfileModal = ({
     >
       <div className="bg-background/90 rounded-3xl shadow-2xl w-full max-w-xl h-[85vh] flex flex-col overflow-hidden border border-border/60">
         {/* Header */}
-        <div className="relative h-40 flex-shrink-0 bg-gradient-to-br from-primary/30 to-cyan-400/20 flex items-center justify-center">
-          <User className="w-14 h-14 text-primary drop-shadow-lg" />
+        <div className="relative h-40 flex-shrink-0 bg-gradient-to-br from-primary/30 to-cyan-400/20 flex flex-col items-center justify-center">
+          <User className="w-14 h-14 text-primary drop-shadow-lg mb-2" />
+          {user && (
+            <div className="text-center mt-1">
+              <div className="font-bold text-lg text-foreground">
+                {user.name || user.email}
+              </div>
+              {user.email && user.name && (
+                <div className="text-sm text-muted-foreground">
+                  {user.email}
+                </div>
+              )}
+            </div>
+          )}
           <button
             className="absolute top-4 right-4 text-muted-foreground hover:text-primary text-2xl"
             onClick={() => {

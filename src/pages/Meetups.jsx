@@ -34,7 +34,7 @@ const Meetups = () => {
   const [selectedMeetup, setSelectedMeetup] = useState(null);
   const [meetupModal, setMeetupModal] = useState(null);
 
-  // Hämta meetups vid sidstart
+  // Hämta meetups vid sidstart och på meetup-updated
   useEffect(() => {
     async function fetchMeetups() {
       try {
@@ -53,6 +53,13 @@ const Meetups = () => {
       }
     }
     fetchMeetups();
+
+    // Lyssna på meetup-updated event
+    const handler = () => fetchMeetups();
+    document.addEventListener("meetup-updated", handler);
+    return () => {
+      document.removeEventListener("meetup-updated", handler);
+    };
   }, []);
 
   // Hämta filtrerade meetups när filter ändras
@@ -128,7 +135,21 @@ const Meetups = () => {
         navigate("/");
         return;
       }
+  const handleCreateEvent = async (eventData) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast({
+          title: "Du måste vara inloggad",
+          description: "Logga in för att skapa ett meetup.",
+          variant: "destructive",
+        });
+        navigate("/");
+        return;
+      }
 
+      const userRaw = localStorage.getItem("user");
+      const user = userRaw ? JSON.parse(userRaw) : null;
       const userRaw = localStorage.getItem("user");
       const user = userRaw ? JSON.parse(userRaw) : null;
 
@@ -145,7 +166,21 @@ const Meetups = () => {
           ? [String(eventData.categories).trim()]
           : [],
       };
+      const meetupData = {
+        title: eventData.title?.trim(),
+        description: eventData.info?.trim(),
+        date: eventData.date,
+        location: eventData.location?.trim(),
+        host: (user?.name && user.name.trim()) || user?.email || "Okänd värd",
+        maxParticipants: Number(eventData.maxAttendees),
+        categories: Array.isArray(eventData.categories)
+          ? eventData.categories
+          : eventData.categories
+          ? [String(eventData.categories).trim()]
+          : [],
+      };
 
+      await createMeetup(meetupData, token);
       await createMeetup(meetupData, token);
 
       const updatedList = await getAllMeetups();
@@ -155,7 +190,21 @@ const Meetups = () => {
         title: "Meetup skapat!",
         description: `Eventet "${meetupData.title}" har skapats.`,
       });
+      toast({
+        title: "Meetup skapat!",
+        description: `Eventet "${meetupData.title}" har skapats.`,
+      });
 
+      document.dispatchEvent(new CustomEvent("meetup-updated"));
+    } catch (error) {
+      console.error("handleCreateEvent error:", error);
+      toast({
+        title: "Fel vid skapande av meetup",
+        description: error.message || "Kunde inte skapa eventet.",
+        variant: "destructive",
+      });
+    }
+  };
       document.dispatchEvent(new CustomEvent("meetup-updated"));
     } catch (error) {
       console.error("handleCreateEvent error:", error);
@@ -178,7 +227,10 @@ const Meetups = () => {
       }
 
       await joinMeetup(id, token);
-      toast({ title: "Anmäld!", description: "Du är nu anmäld till meetupen." });
+      toast({
+        title: "Anmäld!",
+        description: "Du är nu anmäld till meetupen.",
+      });
 
       const data = await getAllMeetups();
       setMeetups(data);
@@ -220,8 +272,34 @@ const Meetups = () => {
     }
   };
 
-  // Backend hanterar nu filtrering — ingen lokal logik behövs
-  const filteredMeetups = meetups;
+  // Filtreringslogik
+  const filteredMeetups = meetups.filter((meetup) => {
+    const matchesCategory =
+      activeCategory === "All" ||
+      (Array.isArray(meetup.categories)
+        ? meetup.categories.includes(activeCategory)
+        : typeof meetup.category === "string" &&
+          meetup.category === activeCategory);
+    const matchesSearch = meetup.title
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesLocation =
+      !selectedLocation || meetup.location === selectedLocation;
+
+    if (selectedDate) {
+      const meetupDate = new Date(meetup.date);
+      return (
+        matchesCategory &&
+        matchesSearch &&
+        matchesLocation &&
+        meetupDate.getFullYear() === selectedDate.getFullYear() &&
+        meetupDate.getMonth() === selectedDate.getMonth() &&
+        meetupDate.getDate() === selectedDate.getDate()
+      );
+    }
+
+    return matchesCategory && matchesSearch && matchesLocation;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -234,7 +312,10 @@ const Meetups = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/70" />
         </div>
 
-        <Navbar onShowProfile={() => setShowProfile(true)} onLogout={handleLogout} />
+        <Navbar
+          onShowProfile={() => setShowProfile(true)}
+          onLogout={handleLogout}
+        />
 
         <ProfileModal
           show={showProfile}
@@ -260,9 +341,9 @@ const Meetups = () => {
                 växer.
               </h1>
               <p className="text-2xl text-muted-foreground max-w-3xl leading-relaxed font-medium">
-                Upptäck Meetups som förenar nyfikenhet, kreativitet och gemenskap.
-                Hitta ditt nästa äventyr – och de människor som gör det
-                oförglömligt.
+                Upptäck Meetups som förenar nyfikenhet, kreativitet och
+                gemenskap. Hitta ditt nästa äventyr – och de människor som gör
+                det oförglömligt.
               </p>
             </div>
 
