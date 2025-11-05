@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { getAllMeetups } from "@/services/meetupService";
 import { Calendar, MapPin, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,34 +20,15 @@ const MeetupInfoModal = ({ meetup, onRegister, onUnregister, onClose }) => {
   const [pulse, setPulse] = useState(false);
 
   useEffect(() => {
-    // Hämta senaste meetup-data från API när modalen öppnas eller meetup._id ändras
-    const fetchLatestMeetup = async () => {
-      if (!meetup?._id) return;
-      try {
-        const all = await getAllMeetups();
-        const found = all.find((m) => m._id === meetup._id);
-        if (found) {
-          setLatestMeetup(found);
-          setRegistered(
-            Array.isArray(found.participants) &&
-              found.participants.includes(user?.id)
-          );
-          setParticipantCount(
-            Array.isArray(found.participants) ? found.participants.length : 0
-          );
-        }
-      } catch (err) {
-        setLatestMeetup(meetup);
-        setRegistered(
-          Array.isArray(meetup.participants) &&
-            meetup.participants.includes(user?.id)
-        );
-        setParticipantCount(
-          Array.isArray(meetup.participants) ? meetup.participants.length : 0
-        );
-      }
-    };
-    fetchLatestMeetup();
+    // Uppdatera state från meetup-prop när den ändras
+    setLatestMeetup(meetup);
+    setRegistered(
+      Array.isArray(meetup.participants) &&
+        meetup.participants.includes(user?.id)
+    );
+    setParticipantCount(
+      Array.isArray(meetup.participants) ? meetup.participants.length : 0
+    );
   }, [meetup]);
 
   const formatDate = (isoDate) =>

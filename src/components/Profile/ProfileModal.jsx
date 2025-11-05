@@ -204,7 +204,6 @@ const ProfileModal = ({
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
-      setSelectedMeetup(null);
     }
   };
 

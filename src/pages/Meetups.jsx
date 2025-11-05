@@ -33,7 +33,7 @@ const Meetups = () => {
   const [selectedMeetup, setSelectedMeetup] = useState(null);
   const [meetupModal, setMeetupModal] = useState(null);
 
-  // Hämta meetups vid sidstart
+  // Hämta meetups vid sidstart och på meetup-updated
   useEffect(() => {
     async function fetchMeetups() {
       try {
@@ -51,6 +51,13 @@ const Meetups = () => {
       }
     }
     fetchMeetups();
+
+    // Lyssna på meetup-updated event
+    const handler = () => fetchMeetups();
+    document.addEventListener("meetup-updated", handler);
+    return () => {
+      document.removeEventListener("meetup-updated", handler);
+    };
   }, []);
 
   // Unika platser för dropdown
@@ -68,57 +75,57 @@ const Meetups = () => {
   };
 
   // Skapa nytt event
-const handleCreateEvent = async (eventData) => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
+  const handleCreateEvent = async (eventData) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast({
+          title: "Du måste vara inloggad",
+          description: "Logga in för att skapa ett meetup.",
+          variant: "destructive",
+        });
+        navigate("/");
+        return;
+      }
+
+      const userRaw = localStorage.getItem("user");
+      const user = userRaw ? JSON.parse(userRaw) : null;
+
+      const meetupData = {
+        title: eventData.title?.trim(),
+        description: eventData.info?.trim(),
+        date: eventData.date,
+        location: eventData.location?.trim(),
+        host: (user?.name && user.name.trim()) || user?.email || "Okänd värd",
+        maxParticipants: Number(eventData.maxAttendees),
+        categories: Array.isArray(eventData.categories)
+          ? eventData.categories
+          : eventData.categories
+          ? [String(eventData.categories).trim()]
+          : [],
+      };
+
+      await createMeetup(meetupData, token);
+
+      //  Hämta uppdaterad lista från backend så allt är i sync
+      const updatedList = await getAllMeetups();
+      setMeetups(updatedList);
+
       toast({
-        title: "Du måste vara inloggad",
-        description: "Logga in för att skapa ett meetup.",
+        title: "Meetup skapat!",
+        description: `Eventet "${meetupData.title}" har skapats.`,
+      });
+
+      document.dispatchEvent(new CustomEvent("meetup-updated"));
+    } catch (error) {
+      console.error("handleCreateEvent error:", error);
+      toast({
+        title: "Fel vid skapande av meetup",
+        description: error.message || "Kunde inte skapa eventet.",
         variant: "destructive",
       });
-      navigate("/");
-      return;
     }
-
-    const userRaw = localStorage.getItem("user");
-    const user = userRaw ? JSON.parse(userRaw) : null;
-
-    const meetupData = {
-      title: eventData.title?.trim(),
-      description: eventData.info?.trim(),
-      date: eventData.date, 
-      location: eventData.location?.trim(),
-      host: (user?.name && user.name.trim()) || user?.email || "Okänd värd",
-      maxParticipants: Number(eventData.maxAttendees),
-      categories: Array.isArray(eventData.categories)
-  ? eventData.categories
-  : eventData.categories
-  ? [String(eventData.categories).trim()]
-  : [],
-    };
-
-    await createMeetup(meetupData, token);
-
-    //  Hämta uppdaterad lista från backend så allt är i sync
-    const updatedList = await getAllMeetups();
-    setMeetups(updatedList);
-
-    toast({
-      title: "Meetup skapat!",
-      description: `Eventet "${meetupData.title}" har skapats.`,
-    });
-
-    document.dispatchEvent(new CustomEvent("meetup-updated"));
-  } catch (error) {
-    console.error("handleCreateEvent error:", error);
-    toast({
-      title: "Fel vid skapande av meetup",
-      description: error.message || "Kunde inte skapa eventet.",
-      variant: "destructive",
-    });
-  }
-};
+  };
 
   // Gå med i meetup
   const handleRegister = async (id) => {
@@ -131,7 +138,10 @@ const handleCreateEvent = async (eventData) => {
       }
 
       await joinMeetup(id, token);
-      toast({ title: "Anmäld!", description: "Du är nu anmäld till meetupen." });
+      toast({
+        title: "Anmäld!",
+        description: "Du är nu anmäld till meetupen.",
+      });
 
       const data = await getAllMeetups();
       setMeetups(data);
@@ -180,11 +190,11 @@ const handleCreateEvent = async (eventData) => {
   // Filtreringslogik
   const filteredMeetups = meetups.filter((meetup) => {
     const matchesCategory =
-  activeCategory === "All" ||
-  (Array.isArray(meetup.categories)
-    ? meetup.categories.includes(activeCategory)
-    : typeof meetup.category === "string" &&
-      meetup.category === activeCategory);
+      activeCategory === "All" ||
+      (Array.isArray(meetup.categories)
+        ? meetup.categories.includes(activeCategory)
+        : typeof meetup.category === "string" &&
+          meetup.category === activeCategory);
     const matchesSearch = meetup.title
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
@@ -217,7 +227,10 @@ const handleCreateEvent = async (eventData) => {
           <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/70" />
         </div>
 
-        <Navbar onShowProfile={() => setShowProfile(true)} onLogout={handleLogout} />
+        <Navbar
+          onShowProfile={() => setShowProfile(true)}
+          onLogout={handleLogout}
+        />
 
         <ProfileModal
           show={showProfile}
@@ -244,9 +257,9 @@ const handleCreateEvent = async (eventData) => {
                 växer.
               </h1>
               <p className="text-2xl text-muted-foreground max-w-3xl leading-relaxed font-medium">
-                Upptäck Meetups som förenar nyfikenhet, kreativitet och gemenskap.
-                Hitta ditt nästa äventyr – och de människor som gör det
-                oförglömligt.
+                Upptäck Meetups som förenar nyfikenhet, kreativitet och
+                gemenskap. Hitta ditt nästa äventyr – och de människor som gör
+                det oförglömligt.
               </p>
             </div>
 
@@ -298,7 +311,7 @@ const handleCreateEvent = async (eventData) => {
             setSelectedLocation={setSelectedLocation}
             uniqueLocations={uniqueLocations}
             filteredMeetups={filteredMeetups}
-            setFilteredMeetups={setMeetups} 
+            setFilteredMeetups={setMeetups}
             meetupModal={meetupModal}
             setMeetupModal={setMeetupModal}
             handleRegister={handleRegister}
