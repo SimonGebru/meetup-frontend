@@ -92,12 +92,29 @@ const MeetupList = ({
   return (
     <ul className="divide-y divide-border/60 rounded-xl bg-muted/30 shadow-inner custom-scroll">
       {meetups.map((meetup) => {
-        const reviewCount =
-          reviews?.filter(
-            (r) =>
-              String(r.meetupId) === String(meetup._id) ||
-              String(r.meetup?._id) === String(meetup._id)
-          ).length || 0;
+        const reviewCount = reviews?.filter((r) => {
+          // Extrahera meetupId oavsett format
+          const reviewMeetupId =
+  r.meetupId
+    ? typeof r.meetupId === "object"
+      ? String(r.meetupId._id || r.meetupId)
+      : String(r.meetupId)
+    : r.meetup
+    ? typeof r.meetup === "object"
+      ? String(r.meetup._id || r.meetup)
+      : String(r.meetup)
+    : null;
+        
+          const match = reviewMeetupId === String(meetup._id);
+          console.log(
+            "🔍 Kontroll av recension:",
+            { reviewMeetupId, meetupId: meetup._id, match }
+          );
+        
+          return match;
+        }).length || 0;
+        
+        console.log("Totalt antal recensioner för meetup:", meetup.title, reviewCount);
 
         const participantsCount = Array.isArray(meetup.participants)
           ? meetup.participants.length
