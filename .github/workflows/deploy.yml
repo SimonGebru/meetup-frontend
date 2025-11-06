@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - dev
-      - feature/*   
+      - feature/*
 
 jobs:
   build:
@@ -27,17 +27,17 @@ jobs:
       - name: Build project
         run: npm run build
 
-  deploy:
-    name: Deploy to AWS S3 (only main)
-    if: github.ref == 'refs/heads/main'   
-    needs: build                         
+  deploy-prod:
+    name: Deploy to AWS S3 (main → production)
+    if: github.ref == 'refs/heads/main'
+    needs: build
     runs-on: ubuntu-latest
 
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
-      S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
 
     steps:
       - name: Checkout code
@@ -54,7 +54,7 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Deploy to S3 (no ACL)
+      - name: Deploy production build to root
         uses: jakejarvis/s3-sync-action@v0.5.1
         with:
           args: --delete
@@ -62,3 +62,40 @@ jobs:
           AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
           SOURCE_DIR: dist
+
+  deploy-dev:
+    name: Deploy to AWS S3 (dev → /dev/ folder)
+    if: github.ref == 'refs/heads/dev'
+    needs: build
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Deploy dev build to /dev/ folder
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        with:
+          args: --delete
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          SOURCE_DIR: dist
+          DEST_DIR: dev
