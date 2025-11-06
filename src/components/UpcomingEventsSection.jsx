@@ -1,3 +1,5 @@
+import { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Search, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,33 +27,45 @@ const UpcomingEventsSection = ({
   handleUnregister = () => {},
   registeredMeetupIds = [],
 }) => {
-  // Beräkna “kommande meetups” med tidszons-buffert (+1h)
   const now = new Date();
+
+  // Håll koll på om filter nyligen ändrats
+  const [filtering, setFiltering] = useState(false);
+  useEffect(() => {
+    setFiltering(true);
+    const t = setTimeout(() => setFiltering(false), 120); 
+    return () => clearTimeout(t);
+  }, [searchQuery, activeCategory, selectedDate, selectedLocation]);
+
+  // Se till att vi alltid använder senaste versionen av meetupen
+  const liveMeetupModal = useMemo(() => {
+    if (!meetupModal || !filteredMeetups?.length) return null;
+    return filteredMeetups.find((m) => m._id === meetupModal._id) || null;
+  }, [meetupModal, filteredMeetups]);
+
   const upcomingMeetups = filteredMeetups.filter((m) => {
     const meetupDate = new Date(m.date);
     return meetupDate.getTime() + 60 * 60 * 1000 >= now.getTime();
   });
 
   return (
-    <section className="py-16 bg-gradient-to-b from-muted/30 to-background border-b border-border/50">
+    <section className="py-16 bg-gradient-to-b from-muted/30 to-background border-b border-border/50 overflow-hidden">
       <div className="container mx-auto px-4 max-w-7xl">
-        {/* Titel och intro */}
+        {/* Titel */}
         <div className="mb-12 text-center max-w-2xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-extrabold mb-3 tracking-tight text-foreground drop-shadow-sm">
             Utforska kommande meetups
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground mb-2">
+          <p className="text-lg md:text-xl text-muted-foreground">
             Hitta inspiration, nätverka och utvecklas tillsammans med andra.
-            Använd de smarta filtren för att snabbt hitta evenemang som passar
-            just dig.
           </p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-12">
-          {/* Filtreringskolumn */}
+          {/* Filterkolumn */}
           <aside className="lg:w-80 w-full flex-shrink-0 mb-8 lg:mb-0">
             <div className="mb-8 space-y-6">
-              {/*  Sökfält */}
+              {/* Sök */}
               <div className="space-y-1">
                 <label
                   htmlFor="search-input"
@@ -64,7 +78,7 @@ const UpcomingEventsSection = ({
                   <Input
                     id="search-input"
                     type="text"
-                    placeholder="Sök evenemang efter namn, ämne eller plats..."
+                    placeholder="Sök evenemang..."
                     className="pl-12 pr-6 h-12 text-base rounded-xl border-2 focus:border-primary/50 shadow bg-background/80 backdrop-blur-sm"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -82,16 +96,12 @@ const UpcomingEventsSection = ({
                 </div>
               </div>
 
-              {/* Platsfilter */}
+              {/* Plats */}
               <div className="space-y-1">
-                <label
-                  htmlFor="location-filter"
-                  className="block text-xs font-semibold text-muted-foreground mb-1"
-                >
+                <label className="block text-xs font-semibold text-muted-foreground mb-1">
                   Plats
                 </label>
                 <select
-                  id="location-filter"
                   className="w-full rounded-lg border border-border bg-background py-2 px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                   value={selectedLocation}
                   onChange={(e) => setSelectedLocation(e.target.value)}
@@ -103,17 +113,9 @@ const UpcomingEventsSection = ({
                     </option>
                   ))}
                 </select>
-                {selectedLocation && (
-                  <button
-                    className="mt-2 text-xs text-primary hover:underline"
-                    onClick={() => setSelectedLocation("")}
-                  >
-                    Rensa platsfilter
-                  </button>
-                )}
               </div>
 
-              {/* Kategorifilter */}
+              {/* Kategori */}
               <div className="space-y-1">
                 <label className="block text-xs font-semibold text-muted-foreground mb-1">
                   Kategori
@@ -124,7 +126,7 @@ const UpcomingEventsSection = ({
                 />
               </div>
 
-              {/* Datumfilter */}
+              {/* Datum */}
               <div className="space-y-1">
                 <label className="block text-xs font-semibold text-muted-foreground mb-1">
                   Datum
@@ -142,20 +144,12 @@ const UpcomingEventsSection = ({
                     }}
                     className="[&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-white [&_.rdp-day]:rounded-lg"
                   />
-                  {selectedDate && (
-                    <button
-                      className="mt-2 text-xs text-primary hover:underline"
-                      onClick={() => setSelectedDate(null)}
-                    >
-                      Rensa datumfilter
-                    </button>
-                  )}
                 </div>
               </div>
             </div>
           </aside>
 
-          {/* Event-kort */}
+          {/* Eventkort */}
           <main className="flex-1 min-w-0">
             <div className="mb-8">
               <h2 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
@@ -165,57 +159,83 @@ const UpcomingEventsSection = ({
               </h2>
               <div className="flex items-center gap-2 text-muted-foreground mt-2">
                 <Calendar className="w-4 h-4" />
-                <p className="text-lg">{upcomingMeetups.length} evenemang hittade</p>
+                <p className="text-lg">
+                  {upcomingMeetups.length} evenemang hittade
+                </p>
               </div>
             </div>
 
             
-            {upcomingMeetups.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 animate-fade-in">
-                {upcomingMeetups.map((meetup, index) => (
-                  <div
-                    key={meetup._id || meetup.id || index}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                    onClick={() => setMeetupModal(meetup)}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Visa ${meetup.title}`}
+            <motion.div
+              layout
+              transition={{
+                layout: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] },
+              }}
+              className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 ${
+                filtering ? "opacity-90" : "opacity-100"
+              } transition-opacity duration-200`}
+            >
+              <AnimatePresence>
+                {upcomingMeetups.length > 0 ? (
+                  upcomingMeetups.map((meetup) => (
+                    <motion.div
+                      key={meetup._id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.98, y: 5 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.97, y: -5 }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
+                      onClick={() => {
+                        const fresh = filteredMeetups.find(
+                          (m) => m._id === meetup._id
+                        );
+                        setMeetupModal({ ...fresh });
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <EventCard {...meetup} />
+                    </motion.div>
+                  ))
+                ) : (
+                  <motion.div
+                    key="no-results"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="col-span-full text-center py-20"
                   >
-                    <EventCard {...meetup} />
-                    
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-20">
-                <div className="space-y-4 max-w-md mx-auto">
-                  <div className="w-16 h-16 mx-auto bg-muted/50 rounded-full flex items-center justify-center">
-                    <Search className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-2xl font-semibold">Inga kommande evenemang</h3>
-                  <p className="text-muted-foreground text-lg">
-                    Alla aktuella evenemang har redan passerat. Prova skapa ett nytt!
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSearchQuery("");
-                      setActiveCategory("All");
-                    }}
-                    className="mt-4"
-                  >
-                    Rensa filter
-                  </Button>
-                </div>
-              </div>
-            )}
+                    <div className="space-y-4 max-w-md mx-auto">
+                      <div className="w-16 h-16 mx-auto bg-muted/50 rounded-full flex items-center justify-center">
+                        <Search className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                      <h3 className="text-2xl font-semibold">
+                        Inga kommande evenemang
+                      </h3>
+                      <p className="text-muted-foreground text-lg">
+                        Alla aktuella evenemang har redan passerat.
+                      </p>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setSearchQuery("");
+                          setActiveCategory("All");
+                        }}
+                        className="mt-4"
+                      >
+                        Rensa filter
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
 
-            {/*  Meetup-modal */}
-            {meetupModal && (
+            {/* 🪄 Modal */}
+            {liveMeetupModal && (
               <MeetupInfoModal
-                meetup={meetupModal}
-                isRegistered={registeredMeetupIds?.includes(meetupModal.id)}
+                meetup={liveMeetupModal}
+                allMeetups={filteredMeetups}
+                isRegistered={registeredMeetupIds?.includes(liveMeetupModal.id)}
                 onRegister={handleRegister}
                 onUnregister={handleUnregister}
                 onClose={() => setMeetupModal(null)}

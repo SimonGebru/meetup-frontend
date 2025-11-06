@@ -19,10 +19,13 @@ const ProfileModal = ({
   selectedMeetup,
   setSelectedMeetup,
   onLogout,
+  meetups: parentMeetups,
+  // eslint-disable-next-line no-unused-vars
+  setMeetups: setParentMeetups,
 }) => {
   const [activeTab, setActiveTab] = useState("joined");
   const [selectedReviewMeetup, setSelectedReviewMeetup] = useState(null);
-  const [meetups, setMeetups] = useState([]);
+  const [meetups, setLocalMeetups] = useState([]);
   const [reviews, setReviews] = useState(() => {
     const stored = localStorage.getItem("reviews");
     return stored ? JSON.parse(stored) : [];
@@ -31,6 +34,11 @@ const ProfileModal = ({
   const { toast } = useToast();
   const user = JSON.parse(localStorage.getItem("user"));
   const now = new Date();
+
+  // Synca parent meetups från props
+  useEffect(() => {
+    if (Array.isArray(parentMeetups)) setLocalMeetups(parentMeetups);
+}, [parentMeetups]);
 
   // Filtrering av meetups
   const createdMeetups = meetups.filter(
@@ -45,11 +53,34 @@ const ProfileModal = ({
     return isFuture && isParticipant;
   });
 
-  // Avanmälan från meetup (global sync)
-  const handleUnregisterFromMeetup = async (meetupId, onUnregister) => {
+  const handleUnregisterFromMeetup = async (meetupId) => {
     try {
-      await onUnregister(meetupId);
-      document.dispatchEvent(new CustomEvent("meetup-updated"));
+      if (typeof onUnregister === "function") {
+        await onUnregister(meetupId);
+      }
+  
+      // Uppdatera lokalt
+      setLocalMeetups((prev) =>
+        prev.map((m) =>
+          m._id === meetupId
+            ? {
+                ...m,
+                participants: (m.participants || []).filter(
+                  (p) => p !== user?.id
+                ),
+              }
+            : m
+        )
+      );
+  
+      toast({
+        title: "Avanmäld!",
+        description: "Du har lämnat meetupen.",
+      });
+  
+      // Skicka global refresh event (uppdaterar Meetups + kommande listor)
+      window.dispatchEvent(new Event("refresh-meetups"));
+      document.dispatchEvent(new Event("meetup-updated"));
     } catch (err) {
       toast({
         title: "Kunde inte avanmäla dig",
@@ -69,27 +100,37 @@ const ProfileModal = ({
     return isPast && (isParticipant || isHost);
   });
 
-  // Hämta alla meetups
-  useEffect(() => {
-    const fetchMeetups = async () => {
-      try {
-        const data = await getAllMeetups();
-        setMeetups(data);
-        console.log("Hämtade meetups:", data);
-      } catch (err) {
-        console.error("Kunde inte hämta meetups:", err);
-      }
-    };
+ // Hämta meetups + håll synk med global state
+useEffect(() => {
+  const fetchMeetups = async () => {
+    try {
+      const data = await getAllMeetups();
+      setLocalMeetups(data);
+      console.log("Hämta meetups i ProfileModal:", data);
+    } catch (err) {
+      console.error("Kunde inte hämta meetups:", err);
+    }
+  };
 
-    if (show) fetchMeetups();
+  // Hämta data när modalen öppnas
+  if (show) fetchMeetups();
 
-    const refreshHandler = () => fetchMeetups();
-    document.addEventListener("meetup-updated", refreshHandler);
+  // När global refresh triggas (t.ex. via MeetupInfoModal)
+  const refreshHandler = () => {
+    console.log("ProfileModal tar emot meetup-updated event");
+    fetchMeetups();
+  };
 
-    return () => {
-      document.removeEventListener("meetup-updated", refreshHandler);
-    };
-  }, [show]);
+  // Lyssna på event
+  window.addEventListener("refresh-meetups", refreshHandler);
+  document.addEventListener("meetup-updated", refreshHandler);
+
+  // Cleanup
+  return () => {
+    window.removeEventListener("refresh-meetups", refreshHandler);
+    document.removeEventListener("meetup-updated", refreshHandler);
+  };
+}, [show]);
 
   // Hämta recensioner för tidigare meetups
   useEffect(() => {
@@ -137,7 +178,7 @@ const ProfileModal = ({
           return [...filtered, ...newReviews];
         });
 
-        console.log(`🔁 Uppdaterade recensioner för meetup ${meetupId}`);
+        console.log(`Uppdaterade recensioner för meetup ${meetupId}`);
       } catch (err) {
         console.error("Kunde inte uppdatera recensioner:", err);
       }
@@ -172,7 +213,7 @@ const ProfileModal = ({
         return;
       }
 
-      console.log("📦 Skickar review:", newReview);
+      console.log("Skickar review:", newReview);
 
       const savedReview = await createReview(
         newReview.meetupId,
@@ -280,6 +321,7 @@ const ProfileModal = ({
                       setSelectedMeetup={setSelectedMeetup}
                       formatDate={formatDate}
                       activeTab={activeTab}
+                      onUnregister={handleUnregisterFromMeetup}
                     />
                   ))}
 
