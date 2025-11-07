@@ -78,7 +78,7 @@ const UpcomingEventsSection = ({
                   <Input
                     id="search-input"
                     type="text"
-                    placeholder="Sök evenemang..."
+                    placeholder="Sök meetups..."
                     className="pl-12 pr-6 h-12 text-base rounded-xl border-2 focus:border-primary/50 shadow bg-background/80 backdrop-blur-sm"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -154,13 +154,13 @@ const UpcomingEventsSection = ({
             <div className="mb-8">
               <h2 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                 {activeCategory === "All"
-                  ? "Kommande evenemang"
-                  : `${activeCategory} evenemang`}
+                  ? "Kommande meetups"
+                  : `${activeCategory} meeutps`}
               </h2>
               <div className="flex items-center gap-2 text-muted-foreground mt-2">
                 <Calendar className="w-4 h-4" />
                 <p className="text-lg">
-                  {upcomingMeetups.length} evenemang hittade
+                  {upcomingMeetups.length} meetups hittade
                 </p>
               </div>
             </div>
@@ -209,10 +209,10 @@ const UpcomingEventsSection = ({
                         <Search className="w-8 h-8 text-muted-foreground" />
                       </div>
                       <h3 className="text-2xl font-semibold">
-                        Inga kommande evenemang
+                        Inga kommande meetup
                       </h3>
                       <p className="text-muted-foreground text-lg">
-                        Alla aktuella evenemang har redan passerat.
+                        Alla aktuella meetups har redan passerat.
                       </p>
                       <Button
                         variant="outline"

@@ -3,12 +3,22 @@ import tailwindcssAnimate from "tailwindcss-animate";
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: "selector",
-  content: ["./pages/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}", "./app/**/*.{js,jsx,ts,tsx}", "./src/**/*.{js,jsx,ts,tsx}"],
+  content: [
+    "./pages/**/*.{js,jsx,ts,tsx}",
+    "./components/**/*.{js,jsx,ts,tsx}",
+    "./app/**/*.{js,jsx,ts,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: {
+        DEFAULT: "1rem",
+        sm: "1.5rem",
+        lg: "2rem",
+        xl: "3rem",
+      },
       screens: {
         "2xl": "1400px",
       },
@@ -69,23 +79,17 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fadeIn 0.6s ease-out",
         "shimmer": "shimmer 2s ease-in-out infinite",
+        // 👇 Ny animation för modalen
+        "fade-in-quick": "fadeInQuick 0.25s ease-out forwards",
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
         fadeIn: {
           "0%": {
@@ -103,6 +107,17 @@ export default {
           },
           "100%": {
             backgroundPosition: "-200% 0",
+          },
+        },
+        // 👇 Ny keyframe för smooth modal fade-in
+        fadeInQuick: {
+          "0%": {
+            opacity: "0",
+            transform: "scale(0.7) translateY(20px)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "scale(0.7) translateY(0)",
           },
         },
       },

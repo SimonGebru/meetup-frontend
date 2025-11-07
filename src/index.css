@@ -141,3 +141,18 @@
 .animate-fade {
   animation: fade 2s ease-in-out forwards;
 }
+
+/* --- GLOBAL SKALNING FÖR RETINA / MACBOOK-SKÄRMAR --- */
+
+@media only screen and (min-resolution: 2dppx) and (max-width: 1500px) {
+  html {
+    zoom: 0.9; 
+  }
+}
+
+
+@media only screen and (max-width: 1366px) {
+  html {
+    zoom: 0.875; 
+  }
+}

@@ -6,6 +6,10 @@ on:
       - main
       - dev
       - feature/*
+      
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
