@@ -1,4 +1,4 @@
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, MapPin, Users, User as UserIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -10,8 +10,10 @@ const MeetupCard = ({
   maxParticipants,
   categories,
   info,
+  description,   
+  host,          
 }) => {
-  // Hantera datumformatering
+  // Datum
   const formattedDate = new Date(date).toLocaleString("sv-SE", {
     weekday: "short",
     year: "numeric",
@@ -21,15 +23,25 @@ const MeetupCard = ({
     minute: "2-digit",
   });
 
-  // Välj första kategorin (backend skickar array)
+  
   const categoryLabel =
     Array.isArray(categories) && categories.length > 0 ? categories[0] : null;
 
-  // Samma logik som MeetupInfoModal
-  const participantCount = Array.isArray(participants)
-    ? participants.length
-    : 0;
+  
+  const participantCount = Array.isArray(participants) ? participants.length : 0;
   const maxCount = typeof maxParticipants === "number" ? maxParticipants : "?";
+
+ 
+  const descriptionText = info ?? description ?? "";
+
+  
+  const looksLikeObjectId =
+    typeof host === "string" && /^[a-f0-9]{24}$/i.test(host);
+
+  const hostLabel =
+    typeof host === "string"
+      ? (looksLikeObjectId ? null : host)              
+      : host?.name || host?.email || null;            
 
   return (
     <Card className="overflow-hidden rounded-2xl bg-background/80 border border-border/60 shadow-lg hover:shadow-xl hover:border-primary/60 transition-all duration-200 hover:scale-[1.025] cursor-pointer group backdrop-blur-md">
@@ -53,10 +65,18 @@ const MeetupCard = ({
           {title}
         </h3>
 
+        {/* Värd */}
+        {hostLabel && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <UserIcon className="w-4 h-4 text-amber-600/80" />
+            <span className="font-medium text-foreground/80">Värd: {hostLabel}</span>
+          </div>
+        )}
+
         {/* Beskrivning */}
-        {info && (
+        {descriptionText && (
           <div className="text-sm text-muted-foreground line-clamp-2 mb-1">
-            {info}
+            {descriptionText}
           </div>
         )}
 
@@ -64,9 +84,7 @@ const MeetupCard = ({
         <div className="space-y-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-primary/80" />
-            <span className="font-medium text-foreground/90">
-              {formattedDate}
-            </span>
+            <span className="font-medium text-foreground/90">{formattedDate}</span>
           </div>
 
           <div className="flex items-center gap-2">
