@@ -255,19 +255,24 @@ useEffect(() => {
       role="dialog"
       aria-modal="true"
     >
-      <div className="bg-background/90 rounded-3xl shadow-2xl w-full max-w-xl h-[85vh] flex flex-col overflow-hidden border border-border/60">
+      <div
+        className="
+          bg-background/90 rounded-3xl shadow-2xl w-full max-w-xl
+          flex flex-col overflow-hidden border border-border/60
+          h-[85vh] md:h-[95vh] lg:h-[95vh] xl:h-[90vh]
+          transition-all duration-300
+        "
+      >
         {/* Header */}
         <div className="relative h-40 flex-shrink-0 bg-gradient-to-br from-primary/30 to-cyan-400/20 flex flex-col items-center justify-center">
-          <User className="w-14 h-14 text-primary drop-shadow-lg mb-2" />
+          <User className="w-12 h-12 text-primary drop-shadow-lg mb-2" />
           {user && (
             <div className="text-center mt-1">
               <div className="font-bold text-lg text-foreground">
                 {user.name || user.email}
               </div>
               {user.email && user.name && (
-                <div className="text-sm text-muted-foreground">
-                  {user.email}
-                </div>
+                <div className="text-sm text-muted-foreground">{user.email}</div>
               )}
             </div>
           )}
@@ -282,15 +287,15 @@ useEffect(() => {
             ×
           </button>
         </div>
-
+  
         {/* Content */}
-        <div className="flex-1 flex flex-col px-8 pt-6 pb-4 overflow-hidden">
+        <div className="flex-1 flex flex-col px-8 pt-6 pb-6 md:pb-8 overflow-hidden">
           <h3 className="text-2xl font-bold mb-6 text-center">Min Profil</h3>
-
+  
           {!selectedMeetup ? (
             <>
               {/* Tabs */}
-              <div className="flex gap-2 mb-4 justify-center">
+              <div className="flex gap-2 mb-5 justify-center">
                 {[
                   { id: "joined", label: "Mina Meetups" },
                   { id: "created", label: "Mina skapade Meetups" },
@@ -309,7 +314,7 @@ useEffect(() => {
                   </button>
                 ))}
               </div>
-
+  
               {/* Listor */}
               <div className="flex-1 overflow-y-auto pr-2 custom-scroll">
                 {activeTab === "joined" &&
@@ -324,7 +329,7 @@ useEffect(() => {
                       onUnregister={handleUnregisterFromMeetup}
                     />
                   ))}
-
+  
                 {activeTab === "created" &&
                   (createdMeetups.length === 0 ? (
                     <EmptyState text="Du har inte skapat några meetups ännu." />
@@ -337,7 +342,7 @@ useEffect(() => {
                       isCreatorView
                     />
                   ))}
-
+  
                 {activeTab === "past" &&
                   (pastMeetups.length === 0 ? (
                     <EmptyState text="Du har inga tidigare meetups." />
@@ -352,9 +357,9 @@ useEffect(() => {
                     />
                   ))}
               </div>
-
+  
               {/* Logout */}
-              <div className="flex justify-center mt-6 mb-2">
+              <div className="flex justify-center mt-6 mb-3 md:mb-4">
                 <button
                   onClick={onLogout}
                   className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-destructive text-destructive-foreground font-semibold shadow hover:bg-destructive/80 transition-all text-base w-full max-w-xs justify-center"
@@ -373,8 +378,8 @@ useEffect(() => {
           )}
         </div>
       </div>
-
-      {/* Review Modal */}
+  
+      {/* Review modal */}
       <ReviewModal
         show={!!selectedReviewMeetup}
         meetup={selectedReviewMeetup}
