@@ -50,7 +50,7 @@ meetup-api:dev
 	•	meetup-api-dev → följer dev
 	•	meetup-api → följer latest
 
-💡 Fördelar:
+Fördelar:
 	•	Isolerade miljöer: dev och prod kan ha egna databaser och variabler.
 	•	Reproducerbarhet: varje build får unik tagg, lätt att rulla tillbaka.
 	•	Automatisk promotion: när dev är stabil -> merge till main -> prod uppdateras.
